@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MISCHEIF — Streetwear Made for Trouble</title>
+<meta name="description" content="MISCHEIF is a streetwear label built for the ones who don't sit still. Shop hoodies, tees, outerwear and more.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23ff3b30%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 font-family=%22Arial Black%22 fill=%22%23fff%22 text-anchor=%22middle%22>M</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="marquee-bar">
+  <div class="marquee-bar__track">
+    <span>Free shipping over $75</span>
+    <span>New drop: STATIC collection</span>
+    <span>30-day easy returns</span>
+    <span>Free shipping over $75</span>
+    <span>New drop: STATIC collection</span>
+    <span>30-day easy returns</span>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="logo">MISCH<span>EIF</span></a>
+
+    <nav class="main-nav__panel" data-nav-panel>
+      <a href="index.html" class="is-active">Home</a>
+      <a href="shop.html">Shop All</a>
+      <a href="shop.html?category=Hoodies">Hoodies</a>
+      <a href="shop.html?category=T-Shirts">Tees</a>
+      <a href="about.html">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-btn" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <a class="icon-btn" href="cart.html" aria-label="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span class="cart-badge" data-cart-count>0</span>
+      </a>
+      <button class="nav-toggle" data-nav-toggle aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero__orb hero__orb--1"></div>
+  <div class="hero__orb hero__orb--2"></div>
+  <div class="hero__bg"></div>
+  <div class="container">
+    <div class="hero__copy">
+      <div class="eyebrow hero__eyebrow">Fall / Winter 2026</div>
+      <h1>MADE FOR<br><em>TROUBLE</em></h1>
+      <p>Heavyweight streetwear built in small batches for people who don't ask permission. New drop just landed.</p>
+      <div class="hero__ctas">
+        <a href="shop.html" class="btn btn--primary">Shop New Arrivals</a>
+        <a href="shop.html?category=Hoodies" class="btn btn--outline">Explore Hoodies</a>
+      </div>
+      <div class="hero__stats">
+        <div><strong>40K+</strong><span>Troublemakers Dressed</span></div>
+        <div><strong>4.8/5</strong><span>Average Rating</span></div>
+        <div><strong>24H</strong><span>Dispatch Time</span></div>
+      </div>
+    </div>
+    <div class="hero__visual" data-reveal>
+      <div class="sticker-3d">New<br>Drop<br>SS26</div>
+      <img id="hero-image" alt="Featured Mischeif look" width="720" height="900">
+      <div class="hero__tag">
+        <div><strong>Riot Hoodie</strong><br><span>Blackout · $78</span></div>
+        <a href="product.html?id=riot-hoodie" class="btn btn--sm btn--primary">View</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="word-strip">
+  <div class="word-strip__track">
+    <span class="filled">Mischeif</span><span>Streetwear</span><span class="filled">Since 2019</span><span>No Rules</span><span class="filled">Mischeif</span><span>Streetwear</span><span class="filled">Since 2019</span><span>No Rules</span>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Shop by category</div>
+        <h2>Pick your poison</h2>
+      </div>
+      <a href="shop.html" class="btn btn--outline">View all categories</a>
+    </div>
+    <div class="cat-grid" id="category-grid"></div>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Fan favorites</div>
+        <h2>Bestsellers</h2>
+      </div>
+      <p>The pieces that sell out first, restocked and ready.</p>
+    </div>
+    <div class="p-grid" id="bestsellers-grid"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="editorial" data-reveal>
+      <div class="editorial__media" data-tilt="6">
+        <img alt="Mischeif lookbook editorial" width="800" height="1000" id="editorial-img-1">
+        <span data-tilt-glow></span>
+      </div>
+      <div class="editorial__copy">
+        <div class="eyebrow">The Static collection</div>
+        <h2>Noise you can wear</h2>
+        <p>Tonal static prints, cropped silhouettes, and fabric weights built for layering. Static is the loudest quiet collection we've made.</p>
+        <a href="shop.html" class="btn btn--primary">Shop the collection</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container">
+    <div class="editorial editorial--reverse" data-reveal>
+      <div class="editorial__media" data-tilt="6">
+        <img alt="Mischeif outerwear editorial" width="800" height="1000" id="editorial-img-2">
+        <span data-tilt-glow></span>
+      </div>
+      <div class="editorial__copy">
+        <div class="eyebrow">Built for weather</div>
+        <h2>Outerwear that earns its keep</h2>
+        <p>From the Blackout Bomber to the Midnight Coach Jacket — technical shells with a street-first fit, made to take a beating.</p>
+        <a href="shop.html?category=Jackets" class="btn btn--primary">Shop jackets</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Just dropped</div>
+        <h2>New Arrivals</h2>
+      </div>
+      <a href="shop.html" class="btn btn--outline">Shop all new</a>
+    </div>
+    <div class="p-grid" id="newarrivals-grid"></div>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">@mischeif</div>
+        <h2>Tag us in trouble</h2>
+      </div>
+    </div>
+    <div class="gallery-strip" id="gallery-strip"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="newsletter" data-reveal>
+      <div>
+        <div class="eyebrow">Join the crew</div>
+        <h2>10% off your first order</h2>
+        <p>Sign up for early access to drops, restocks, and the occasional bad idea. Unsubscribe whenever.</p>
+      </div>
+      <div>
+        <form data-newsletter-form>
+          <input type="email" required placeholder="you@example.com" aria-label="Email address">
+          <button class="btn btn--accent" type="submit">Sign Up</button>
+        </form>
+        <small>By signing up you agree to receive marketing emails. No spam, promise (mostly).</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="logo">MISCH<span>EIF</span></a>
+        <p>Independent streetwear label designing small-batch pieces for people who don't sit still. Based nowhere in particular.</p>
+        <div class="social-row">
+          <a class="icon-btn" href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
+          <a class="icon-btn" href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3a5 5 0 005 5"/><path d="M16 3v13a4 4 0 11-4-4"/></svg></a>
+          <a class="icon-btn" href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="shop.html?category=Hoodies">Hoodies</a></li>
+          <li><a href="shop.html?category=T-Shirts">T-Shirts</a></li>
+          <li><a href="shop.html?category=Jackets">Jackets</a></li>
+          <li><a href="shop.html?category=Bottoms">Bottoms</a></li>
+          <li><a href="shop.html?category=Accessories">Accessories</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="#">Shipping & Returns</a></li>
+          <li><a href="#">Size Guide</a></li>
+          <li><a href="#">Track Order</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About Mischeif</a></li>
+          <li><a href="#">Sustainability</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span data-year></span> Mischeif Apparel Co. All rights reserved. (Demo store — not a real checkout.)</span>
+      <span class="payments">VISA · MASTERCARD · AMEX · PAYPAL · APPLE PAY</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/products.js"></script>
+<script src="js/placeholder.js"></script>
+<script src="js/render.js"></script>
+<script src="js/tilt.js"></script>
+<script src="js/main.js"></script>
+<script src="js/home.js"></script>
+</body>
+</html>
