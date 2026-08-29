@@ -163,11 +163,21 @@ input, select, textarea { font-family: inherit; }
   position: sticky;
   top: 0;
   z-index: 100;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(14px);
   border-bottom: 1px solid transparent;
   transition: border-color .3s ease, padding .3s ease;
   padding: 22px 0;
+}
+/* Blur lives on a pseudo-element, not .site-header itself — putting backdrop-filter
+   directly on the header would make it the containing block for fixed-position
+   descendants (like the mobile nav drawer), collapsing them to the header's own box. */
+.site-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(14px);
+  z-index: -1;
+  pointer-events: none;
 }
 .site-header.scrolled { border-color: var(--border); padding: 14px 0; }
 .site-header .container {
@@ -703,12 +713,14 @@ input, select, textarea { font-family: inherit; }
   }
   [data-nav-panel].open {
     display: flex;
-    position: fixed; inset: 0; top: 68px;
+    position: fixed;
+    inset: 0;
     background: var(--bg);
     flex-direction: column;
-    padding: 30px 24px;
+    padding: 128px 24px 30px;
     z-index: 90;
     gap: 4px;
+    overflow-y: auto;
   }
   [data-nav-panel].open a { font-size: 22px; padding: 16px 4px; border-bottom: 1px solid var(--border); border-radius: 0; }
 

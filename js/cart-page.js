@@ -18,6 +18,7 @@
           <p>Looks like you haven't caused any trouble yet.</p>
           <a href="shop.html" class="btn btn--primary">Start Shopping</a>
         </div>`;
+      initReveal();
       return;
     }
 
