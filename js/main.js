@@ -32,6 +32,18 @@ function addToCart({ id, size, color, qty }) {
   saveCart(cart);
 }
 
+/** Adds a one-off customized garment (see customizer.js). Never merged with
+ *  another line — every custom design is treated as unique. */
+function addCustomToCart(customItem) {
+  const cart = getCart();
+  cart.push({
+    type: "custom",
+    lineId: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    ...customItem
+  });
+  saveCart(cart);
+}
+
 function removeFromCartLine(index) {
   const cart = getCart();
   cart.splice(index, 1);
@@ -52,6 +64,7 @@ function cartCount() {
 function cartSubtotal() {
   const cart = getCart();
   return cart.reduce((sum, item) => {
+    if (item.type === "custom") return sum + item.price * item.qty;
     const product = typeof getProductById === "function" ? getProductById(item.id) : null;
     return sum + (product ? product.price * item.qty : 0);
   }, 0);

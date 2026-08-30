@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Studio — MISCHEIF</title>
+<meta name="description" content="Design your own custom Mischeif hoodie or tee — upload a photo or pick a preset graphic for the front, back, sleeves, neck and hem.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23ff3b30%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 font-family=%22Arial Black%22 fill=%22%23fff%22 text-anchor=%22middle%22>M</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="marquee-bar">
+  <div class="marquee-bar__track">
+    <span>Design your own — free preview</span>
+    <span>Upload any photo</span>
+    <span>Front · Back · Sleeves · Neck · Hem</span>
+    <span>Design your own — free preview</span>
+    <span>Upload any photo</span>
+    <span>Front · Back · Sleeves · Neck · Hem</span>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="logo">MISCH<span>EIF</span></a>
+    <nav class="main-nav__panel" data-nav-panel>
+      <a href="index.html">Home</a>
+      <a href="shop.html">Shop All</a>
+      <a href="shop.html?category=Hoodies">Hoodies</a>
+      <a href="shop.html?category=T-Shirts">Tees</a>
+      <a href="about.html">About</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <a class="icon-btn" href="cart.html" aria-label="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span class="cart-badge" data-cart-count>0</span>
+      </a>
+      <button class="nav-toggle" data-nav-toggle aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container">
+    <div class="breadcrumbs"><a href="index.html">Home</a> / <span>Design Studio</span></div>
+    <h1>Make It Yours</h1>
+    <p style="color:var(--muted);max-width:520px;margin-top:14px">Upload a photo or pick a design, then place it on the front, back, sleeves, neck or hem. What you see is what gets printed.</p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container">
+    <div class="studio-layout">
+
+      <div class="studio-canvas">
+        <div class="studio-viewtabs">
+          <button type="button" data-view-tab="front" class="active">Front</button>
+          <button type="button" data-view-tab="back">Back</button>
+        </div>
+        <div class="garment-stage" id="garment-stage" data-tilt="4"></div>
+        <p class="studio-hint">Tap a highlighted zone to add your design. Drag a placed design to reposition it.</p>
+      </div>
+
+      <aside class="studio-panel">
+        <div class="panel-block">
+          <h4>Garment</h4>
+          <div class="garment-type-toggle">
+            <button type="button" data-garment="tee">T-Shirt</button>
+            <button type="button" data-garment="hoodie">Hoodie</button>
+          </div>
+        </div>
+
+        <div class="panel-block">
+          <h4>Garment Color</h4>
+          <div class="color-options" id="studio-main-colors"></div>
+        </div>
+
+        <div class="panel-block">
+          <h4>Trim / Border Color</h4>
+          <div class="color-options" id="studio-trim-colors"></div>
+        </div>
+
+        <div class="panel-block">
+          <h4>Your Designs</h4>
+          <div id="zone-layers-list" class="zone-layers"></div>
+        </div>
+
+        <div class="panel-block">
+          <h4>Size</h4>
+          <div class="size-options" id="studio-sizes"></div>
+        </div>
+
+        <div class="panel-block">
+          <div class="option-group__head" style="margin:0 0 10px"><span>Quantity</span></div>
+          <div class="qty-stepper">
+            <button type="button" id="studio-qty-minus">–</button>
+            <span id="studio-qty-value">1</span>
+            <button type="button" id="studio-qty-plus">+</button>
+          </div>
+        </div>
+
+        <div class="studio-price">
+          <div class="summary-row"><span>Base (<span id="price-base-label">T-Shirt</span>)</span><strong id="price-base">$34</strong></div>
+          <div class="summary-row"><span>Customization (<span id="price-zones-count">0</span> zones)</span><strong id="price-zones">$0</strong></div>
+          <div class="summary-total"><span>Total / unit</span><span id="price-total">$34</span></div>
+        </div>
+
+        <button class="btn btn--primary btn--block" id="studio-add-cart">Add to Bag</button>
+        <p style="text-align:center;color:var(--muted);font-size:11.5px;margin-top:14px">Demo store — images stay in your browser and are never uploaded anywhere.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- Zone editor drawer -->
+<div class="zone-editor" id="zone-editor" hidden>
+  <div class="zone-editor__backdrop" data-zone-editor-close></div>
+  <div class="zone-editor__panel">
+    <div class="zone-editor__head">
+      <h3 id="zone-editor-title">Front</h3>
+      <button type="button" data-zone-editor-close class="icon-btn" aria-label="Close">✕</button>
+    </div>
+
+    <div id="zone-editor-source">
+      <div class="zone-editor__tabs">
+        <button type="button" data-source-tab="upload" class="active">Upload Photo</button>
+        <button type="button" data-source-tab="presets">Browse Designs</button>
+      </div>
+      <div class="zone-editor__body">
+        <div class="source-panel" data-source-panel="upload">
+          <label class="upload-drop" for="zone-upload-input">
+            <input type="file" id="zone-upload-input" accept="image/*" hidden>
+            <span class="upload-drop__icon">📤</span>
+            <strong>Click to upload a photo</strong>
+            <small>PNG or JPG works best</small>
+          </label>
+        </div>
+        <div class="source-panel" data-source-panel="presets" hidden>
+          <div class="preset-grid" id="preset-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="zone-editor__controls" id="zone-editor-controls" hidden>
+      <div class="editor-preview">
+        <img id="editor-preview-img" alt="Current design">
+        <span id="editor-preview-name"></span>
+      </div>
+      <div class="control-row">
+        <label>Size</label>
+        <input type="range" id="ctrl-scale" min="30" max="180" value="100">
+      </div>
+      <div class="control-row">
+        <label>Rotate</label>
+        <input type="range" id="ctrl-rotate" min="-45" max="45" value="0">
+      </div>
+      <div class="zone-editor__actions">
+        <button type="button" class="btn btn--outline btn--sm" id="ctrl-change">Change Design</button>
+        <button type="button" class="btn btn--outline btn--sm" id="ctrl-remove">Remove</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="logo">MISCH<span>EIF</span></a>
+        <p>Independent streetwear label designing small-batch pieces for people who don't sit still.</p>
+        <div class="social-row">
+          <a class="icon-btn" href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
+          <a class="icon-btn" href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3a5 5 0 005 5"/><path d="M16 3v13a4 4 0 11-4-4"/></svg></a>
+          <a class="icon-btn" href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="4" x2="20" y2="20"/><line x1="20" y1="4" x2="4" y2="20"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="shop.html?category=Hoodies">Hoodies</a></li>
+          <li><a href="shop.html?category=T-Shirts">T-Shirts</a></li>
+          <li><a href="customize.html">Design Studio</a></li>
+          <li><a href="shop.html?category=Bottoms">Bottoms</a></li>
+          <li><a href="shop.html?category=Accessories">Accessories</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="#">Shipping & Returns</a></li>
+          <li><a href="#">Size Guide</a></li>
+          <li><a href="#">Track Order</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About Mischeif</a></li>
+          <li><a href="#">Sustainability</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span data-year></span> Mischeif Apparel Co. All rights reserved. (Demo store — not a real checkout.)</span>
+      <span class="payments">VISA · MASTERCARD · AMEX · PAYPAL · APPLE PAY</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/products.js"></script>
+<script src="js/placeholder.js"></script>
+<script src="js/garment-art.js"></script>
+<script src="js/design-presets.js"></script>
+<script src="js/render.js"></script>
+<script src="js/tilt.js"></script>
+<script src="js/main.js"></script>
+<script src="js/customizer.js"></script>
+</body>
+</html>
