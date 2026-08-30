@@ -39,6 +39,12 @@
     const newArrivals = PRODUCTS.filter((p) => p.tag === "New").slice(0, 4);
     renderGrid(document.getElementById("newarrivals-grid"), newArrivals.length ? newArrivals : PRODUCTS.slice(0, 4));
 
+    // Design Studio promo art
+    const studioMedia = document.getElementById("promo-studio-media");
+    if (studioMedia) {
+      studioMedia.insertAdjacentHTML("afterbegin", garmentSVG("hoodie", "front", "#111111", "#ff3b30"));
+    }
+
     // Editorial images
     const ed1 = document.getElementById("editorial-img-1");
     const ed2 = document.getElementById("editorial-img-2");

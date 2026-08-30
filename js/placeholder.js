@@ -63,7 +63,6 @@ function productImage(product, label, seedOffset = 0) {
   const accent = PH_ACCENT[seed % PH_ACCENT.length];
   const icon = PH_ICONS[product.category] || PH_ICONS["T-Shirts"];
   const stripeFlip = seed % 2 === 0;
-  const caption = (label || product.category).toUpperCase();
 
   const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="900" viewBox="0 0 720 900">
@@ -81,8 +80,6 @@ function productImage(product, label, seedOffset = 0) {
     ${icon}
   </g>
   <circle cx="640" cy="80" r="3" fill="${accent}" opacity="0.8"/>
-  <text x="40" y="850" font-family="Space Grotesk, Arial, sans-serif" font-size="20" letter-spacing="4"
-        fill="#f2f1ed" opacity="0.55">${caption}</text>
   <text x="40" y="60" font-family="Arial, sans-serif" font-size="14" letter-spacing="6"
         fill="${accent}" opacity="0.9">MISCHEIF</text>
 </svg>`.trim();

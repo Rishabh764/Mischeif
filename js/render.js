@@ -11,16 +11,20 @@ function starRow(rating) {
   return out;
 }
 
+const CATEGORY_TO_GARMENT = { Hoodies: "hoodie", "T-Shirts": "tee" };
+
 function productCardHTML(product) {
   const img = productImage(product, product.colors[0].name, 0);
   const imgHover = productImage(product, "Back", 1);
   const price = formatPrice(product.price);
   const compareAt = product.compareAt ? formatPrice(product.compareAt) : "";
+  const garment = CATEGORY_TO_GARMENT[product.category];
 
   return `
   <article class="p-card" data-reveal>
     <a class="p-card__media" href="product.html?id=${product.id}" aria-label="${product.name}" data-tilt="10">
       ${product.tag ? `<span class="badge badge--${product.tag.toLowerCase()}">${product.tag}</span>` : ""}
+      ${garment ? `<button type="button" class="badge-customize" data-customize-link="customize.html?garment=${garment}&color=${encodeURIComponent(product.colors[0].name)}" title="Design your own">🎨 Customize</button>` : ""}
       <img class="p-card__img p-card__img--front" src="${img}" alt="${product.name}" loading="lazy" width="720" height="900">
       <img class="p-card__img p-card__img--back" src="${imgHover}" alt="" loading="lazy" width="720" height="900">
       <span data-tilt-glow></span>
@@ -56,5 +60,16 @@ function renderGrid(container, products, emptyMessage = "No products match those
   container.innerHTML = products.map(productCardHTML).join("");
   initQuickAdd();
   initReveal();
+  initCustomizeBadges(container);
   if (typeof initTilt === "function") initTilt(container);
+}
+
+function initCustomizeBadges(root = document) {
+  root.querySelectorAll("[data-customize-link]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = btn.getAttribute("data-customize-link");
+    });
+  });
 }

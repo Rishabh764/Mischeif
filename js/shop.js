@@ -10,7 +10,6 @@
     categories: [],
     sizes: [],
     maxPrice: 160,
-    saleOnly: false,
     sort: "featured"
   };
 
@@ -24,7 +23,6 @@
     if (state.categories.length && !state.categories.includes(p.category)) return false;
     if (state.sizes.length && !p.sizes.some((s) => state.sizes.includes(s))) return false;
     if (p.price > state.maxPrice) return false;
-    if (state.saleOnly && p.tag !== "Sale") return false;
     return true;
   }
 
@@ -86,7 +84,6 @@
     const chips = [];
     state.categories.forEach((c) => chips.push({ label: c, clear: () => (state.categories = state.categories.filter((x) => x !== c)) }));
     state.sizes.forEach((s) => chips.push({ label: `Size ${s}`, clear: () => (state.sizes = state.sizes.filter((x) => x !== s)) }));
-    if (state.saleOnly) chips.push({ label: "On Sale", clear: () => (state.saleOnly = false) });
     if (state.maxPrice < 160) chips.push({ label: `Under $${state.maxPrice}`, clear: () => (state.maxPrice = 160) });
 
     const host = document.getElementById("active-chips");
@@ -107,7 +104,6 @@
   function syncFiltersUI() {
     renderCategoryFilters();
     renderSizeFilters();
-    document.getElementById("filter-sale").checked = state.saleOnly;
     document.getElementById("filter-price").value = state.maxPrice;
     document.getElementById("price-max-label").textContent = "$" + state.maxPrice;
   }
@@ -162,10 +158,6 @@
       document.getElementById("price-max-label").textContent = "$" + state.maxPrice;
       update();
     });
-    document.getElementById("filter-sale").addEventListener("change", (e) => {
-      state.saleOnly = e.target.checked;
-      update();
-    });
     document.getElementById("sort-select").addEventListener("change", (e) => {
       state.sort = e.target.value;
       update();
@@ -174,7 +166,6 @@
       state.categories = [];
       state.sizes = [];
       state.maxPrice = 160;
-      state.saleOnly = false;
       state.sort = "featured";
       document.getElementById("sort-select").value = "featured";
       syncFiltersUI();

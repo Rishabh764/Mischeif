@@ -82,6 +82,16 @@
           </button>
         </div>
 
+        ${CATEGORY_TO_GARMENT[product.category] ? `
+        <a class="customize-cta" href="customize.html?garment=${CATEGORY_TO_GARMENT[product.category]}&color=${encodeURIComponent(activeColor)}">
+          <span class="customize-cta__icon">🎨</span>
+          <span>
+            <strong>Want it one-of-one?</strong>
+            <small>Design your own version of this ${product.category === "Hoodies" ? "hoodie" : "tee"} in the Studio</small>
+          </span>
+          <span class="customize-cta__arrow">→</span>
+        </a>` : ""}
+
         <div class="pdp__meta-row">
           <span>🚚 Free shipping over $75</span>
           <span>↩ 30-day returns</span>

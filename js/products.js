@@ -9,8 +9,7 @@ const PRODUCTS = [
     name: "Riot Hoodie",
     category: "Hoodies",
     price: 78,
-    compareAt: 98,
-    tag: "Sale",
+    tag: null,
     rating: 4.8,
     reviews: 214,
     colors: [
@@ -172,8 +171,7 @@ const PRODUCTS = [
     name: "Nightcrawler Tee",
     category: "T-Shirts",
     price: 34,
-    tag: "Sale",
-    compareAt: 42,
+    tag: null,
     rating: 4.6,
     reviews: 163,
     colors: [
@@ -353,8 +351,7 @@ const PRODUCTS = [
     name: "Curfew Shorts",
     category: "Bottoms",
     price: 52,
-    tag: "Sale",
-    compareAt: 64,
+    tag: null,
     rating: 4.5,
     reviews: 76,
     colors: [
