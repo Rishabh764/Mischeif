@@ -128,12 +128,29 @@
     document.title = `${label} — MISCHEIF`;
   }
 
+  function updateNavActive() {
+    const navLinks = document.querySelectorAll("[data-nav-panel] a");
+    const target =
+      state.categories.length === 1
+        ? `shop.html?category=${encodeURIComponent(state.categories[0])}`
+        : "shop.html";
+    let matched = null;
+    navLinks.forEach((a) => {
+      a.classList.remove("is-active");
+      if (a.getAttribute("href") === target) matched = a;
+    });
+    // Fall back to "Shop All" when the active category has no dedicated nav link
+    // (e.g. Jackets/Bottoms/Accessories only appear via the category tiles/filters).
+    (matched || document.querySelector('[data-nav-panel] a[href="shop.html"]'))?.classList.add("is-active");
+  }
+
   function update() {
     const filtered = sortProducts(PRODUCTS.filter(matchesFilters));
     renderGrid(document.getElementById("shop-grid"), filtered, "No products match those filters. Try clearing a few.");
     document.getElementById("result-count").textContent = `${filtered.length} item${filtered.length === 1 ? "" : "s"}`;
     renderChips();
     updateTitle();
+    updateNavActive();
   }
 
   document.addEventListener("DOMContentLoaded", () => {
