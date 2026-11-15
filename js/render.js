@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHEIF — Shared product-card rendering
+   MISCHIEF — Shared product-card rendering
    ========================================================================== */
 
 function starRow(rating) {

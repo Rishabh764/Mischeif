@@ -1,8 +1,8 @@
 /* ==========================================================================
-   MISCHEIF — Shared site behavior: cart storage, nav, toasts, misc UI.
+   MISCHIEF — Shared site behavior: cart storage, nav, toasts, misc UI.
    ========================================================================== */
 
-const CART_KEY = "mischeif_cart_v1";
+const CART_KEY = "mischief_cart_v1";
 
 /* ---------- Cart storage ------------------------------------------------ */
 

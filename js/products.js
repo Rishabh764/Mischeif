@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHEIF — Dummy product catalog
+   MISCHIEF — Dummy product catalog
    All data below is placeholder content for demo/UX purposes.
    ========================================================================== */
 
@@ -435,8 +435,8 @@ const PRODUCTS = [
     ]
   },
   {
-    id: "mischeif-socks",
-    name: "Mischeif Socks (3-Pack)",
+    id: "mischief-socks",
+    name: "Mischief Socks (3-Pack)",
     category: "Accessories",
     price: 24,
     tag: null,

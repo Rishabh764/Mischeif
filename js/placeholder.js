@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHEIF — Generated placeholder artwork for dummy products.
+   MISCHIEF — Generated placeholder artwork for dummy products.
    Produces on-brand SVG "line-art on card" imagery with zero network
    dependency, so the catalog looks cohesive without real photography.
    ========================================================================== */
@@ -81,7 +81,7 @@ function productImage(product, label, seedOffset = 0) {
   </g>
   <circle cx="640" cy="80" r="3" fill="${accent}" opacity="0.8"/>
   <text x="40" y="60" font-family="Arial, sans-serif" font-size="14" letter-spacing="6"
-        fill="${accent}" opacity="0.9">MISCHEIF</text>
+        fill="${accent}" opacity="0.9">MISCHIEF</text>
 </svg>`.trim();
 
   return "data:image/svg+xml;utf8," + encodeURIComponent(svg);

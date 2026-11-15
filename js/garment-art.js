@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHEIF — Customizer garment silhouettes (Tee / Hoodie, Front / Back)
+   MISCHIEF — Customizer garment silhouettes (Tee / Hoodie, Front / Back)
    All shapes share a 480x600 viewBox so zone overlays (see customizer.js)
    can be positioned with simple percentages that line up with the art.
    ========================================================================== */

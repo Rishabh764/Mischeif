@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHEIF — Lightweight 3D pointer-tilt for cards & visuals
+   MISCHIEF — Lightweight 3D pointer-tilt for cards & visuals
    Adds real depth (rotateX/rotateY + dynamic shadow) on mouse move,
    no external libs. Respects reduced-motion and touch devices.
    ========================================================================== */

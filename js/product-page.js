@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHEIF — Product detail page
+   MISCHIEF — Product detail page
    ========================================================================== */
 
 (function () {
@@ -23,12 +23,13 @@
   }
 
   function renderPDP() {
-    document.getElementById("doc-title").textContent = `${product.name} — MISCHEIF`;
+    document.getElementById("doc-title").textContent = `${product.name} — MISCHIEF`;
     const imgs = shots();
 
     document.getElementById("pdp-root").innerHTML = `
       <div class="pdp__gallery">
         <div class="pdp__main-img" data-tilt="5">
+          ${CATEGORY_TO_GARMENT[product.category] ? `<a class="badge-customize" href="customize.html?garment=${CATEGORY_TO_GARMENT[product.category]}&color=${encodeURIComponent(activeColor)}" title="Design your own">🎨 Customize</a>` : ""}
           <img id="pdp-main-img" src="${imgs[activeShotIndex]}" alt="${product.name}" width="720" height="900">
           <span data-tilt-glow></span>
         </div>

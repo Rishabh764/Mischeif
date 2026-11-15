@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHEIF — Global stylesheet
+   MISCHIEF — Global stylesheet
    ========================================================================== */
 
 /* ---------- Tokens -------------------------------------------------------- */
@@ -601,8 +601,10 @@ input, select, textarea { font-family: inherit; }
 /* ---------- Product detail page ---------------------------------------------------------- */
 .pdp { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; padding: 48px 0 80px; align-items: flex-start; }
 .pdp__gallery { position: sticky; top: 110px; }
-.pdp__main-img { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); aspect-ratio: 4/5; margin-bottom: 14px; }
+.pdp__main-img { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); aspect-ratio: 4/5; margin-bottom: 14px; }
 .pdp__main-img img { width: 100%; height: 100%; object-fit: cover; }
+/* Same "Customize" pill as the product cards, a little larger on the big image. Stays top-right at every width. */
+.pdp__main-img .badge-customize { top: 14px; bottom: auto; right: 14px; padding: 9px 16px; font-size: 12.5px; }
 .pdp__thumbs { display: flex; gap: 10px; }
 .pdp__thumbs button { width: 76px; aspect-ratio: 4/5; border-radius: 8px; overflow: hidden; border: 2px solid var(--border); padding: 0; background: none; }
 .pdp__thumbs button.active { border-color: var(--accent); }

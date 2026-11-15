@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHEIF — Design Studio (tee & hoodie customizer)
+   MISCHIEF — Design Studio (tee & hoodie customizer)
    ========================================================================== */
 
 (function () {
@@ -457,5 +457,5 @@
   });
 
   /* Exposed for cart page mini-previews */
-  window.MischeifStudio = { GARMENT_LABEL, VIEW_ZONES };
+  window.MischiefStudio = { GARMENT_LABEL, VIEW_ZONES };
 })();

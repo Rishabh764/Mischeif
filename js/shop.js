@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHEIF — Shop / catalog page: filtering, sorting, URL sync
+   MISCHIEF — Shop / catalog page: filtering, sorting, URL sync
    ========================================================================== */
 
 (function () {
@@ -121,7 +121,7 @@
     const label = state.categories.length === 1 ? state.categories[0] : "Shop All";
     title.textContent = label;
     crumb.textContent = label;
-    document.title = `${label} — MISCHEIF`;
+    document.title = `${label} — MISCHIEF`;
   }
 
   function updateNavActive() {
