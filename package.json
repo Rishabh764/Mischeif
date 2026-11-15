@@ -1,0 +1,8 @@
+{
+  "name": "mischief-showroom",
+  "private": true,
+  "description": "Mischief demo store: a 3D showroom in plain HTML, CSS and JS. No build step, no dependencies.",
+  "scripts": {
+    "dev": "node serve.js"
+  }
+}

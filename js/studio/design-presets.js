@@ -1,31 +1,24 @@
 /* ==========================================================================
-   MISCHIEF — Preset design library for the Customizer
+   MISCHIEF — Preset design library for the Studio.
    Transparent-background SVG graphics/text, ready to drop onto a print zone.
    ========================================================================== */
 
-const DESIGN_PRESETS = [
+export const DESIGN_PRESETS = [
   {
-    id: "bolt",
-    name: "Bolt",
-    category: "Graphics",
+    id: "bolt", name: "Bolt", category: "Graphics",
     svg: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
       <polygon points="120,10 40,110 90,110 75,190 165,80 110,80" fill="#ff3b30" stroke="#ffffff" stroke-width="4" stroke-linejoin="round"/>
     </svg>`
   },
   {
-    id: "flame",
-    name: "Flame",
-    category: "Graphics",
+    id: "flame", name: "Flame", category: "Graphics",
     svg: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <path d="M100 10 C60 60 40 90 40 125 C40 165 68 190 100 190 C132 190 160 165 160 125 C160 100 148 85 138 72 C140 95 128 105 118 100 C126 80 112 55 90 40 C96 60 84 68 76 62 C82 48 82 28 100 10 Z"
-        fill="#ff3b30"/>
+      <path d="M100 10 C60 60 40 90 40 125 C40 165 68 190 100 190 C132 190 160 165 160 125 C160 100 148 85 138 72 C140 95 128 105 118 100 C126 80 112 55 90 40 C96 60 84 68 76 62 C82 48 82 28 100 10 Z" fill="#ff3b30"/>
       <path d="M100 70 C86 92 80 108 80 128 C80 148 90 160 100 160 C110 160 120 148 120 128 C120 116 114 108 108 100 C110 112 102 118 98 114 C104 100 98 84 100 70 Z" fill="#ffcf3b"/>
     </svg>`
   },
   {
-    id: "skull",
-    name: "Skull",
-    category: "Graphics",
+    id: "skull", name: "Skull", category: "Graphics",
     svg: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
       <path d="M100 20 C60 20 35 50 35 90 C35 118 48 132 60 145 L60 165 L80 165 L80 150 L90 150 L90 165 L110 165 L110 150 L120 150 L120 165 L140 165 L140 145 C152 132 165 118 165 90 C165 50 140 20 100 20 Z" fill="#f3f2ee"/>
       <circle cx="72" cy="90" r="14" fill="#0a0a0b"/>
@@ -35,21 +28,19 @@ const DESIGN_PRESETS = [
     </svg>`
   },
   {
-    id: "paw",
-    name: "Paw Mark",
-    category: "Graphics",
+    id: "paw", name: "Paw Mark", category: "Graphics",
     svg: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="100" cy="130" rx="46" ry="38" fill="#111111"/>
-      <ellipse cx="55" cy="80" rx="18" ry="24" fill="#111111"/>
-      <ellipse cx="95" cy="55" rx="18" ry="26" fill="#111111"/>
-      <ellipse cx="140" cy="60" rx="18" ry="26" fill="#111111"/>
-      <ellipse cx="168" cy="95" rx="16" ry="22" fill="#111111"/>
+      <g fill="#f3f2ee" stroke="#0a0a0b" stroke-width="3">
+        <ellipse cx="100" cy="130" rx="46" ry="38"/>
+        <ellipse cx="55" cy="80" rx="18" ry="24"/>
+        <ellipse cx="95" cy="55" rx="18" ry="26"/>
+        <ellipse cx="140" cy="60" rx="18" ry="26"/>
+        <ellipse cx="168" cy="95" rx="16" ry="22"/>
+      </g>
     </svg>`
   },
   {
-    id: "starburst",
-    name: "Starburst",
-    category: "Graphics",
+    id: "starburst", name: "Starburst", category: "Graphics",
     svg: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
       <g fill="#c6ff00">
         <polygon points="100,10 112,80 100,100 88,80"/>
@@ -65,9 +56,7 @@ const DESIGN_PRESETS = [
     </svg>`
   },
   {
-    id: "barbed",
-    name: "Barbed Circle",
-    category: "Graphics",
+    id: "barbed", name: "Barbed Circle", category: "Graphics",
     svg: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
       <circle cx="100" cy="100" r="70" fill="none" stroke="#f3f2ee" stroke-width="6"/>
       <g stroke="#f3f2ee" stroke-width="5" stroke-linecap="round">
@@ -81,18 +70,14 @@ const DESIGN_PRESETS = [
     </svg>`
   },
   {
-    id: "crown",
-    name: "Crown",
-    category: "Graphics",
+    id: "crown", name: "Crown", category: "Graphics",
     svg: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
       <path d="M30 150 L40 80 L75 115 L100 60 L125 115 L160 80 L170 150 Z" fill="#c6ff00" stroke="#0a0a0b" stroke-width="4" stroke-linejoin="round"/>
       <rect x="30" y="150" width="140" height="18" rx="3" fill="#c6ff00" stroke="#0a0a0b" stroke-width="4"/>
     </svg>`
   },
   {
-    id: "smiley-x",
-    name: "Trouble Face",
-    category: "Graphics",
+    id: "smiley-x", name: "Trouble Face", category: "Graphics",
     svg: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
       <circle cx="100" cy="100" r="80" fill="#ffcf3b"/>
       <g stroke="#0a0a0b" stroke-width="8" stroke-linecap="round">
@@ -103,49 +88,37 @@ const DESIGN_PRESETS = [
     </svg>`
   },
   {
-    id: "text-mischief",
-    name: "MISCHIEF Badge",
-    category: "Lettering",
+    id: "text-mischief", name: "MISCHIEF Badge", category: "Lettering",
     svg: `<svg viewBox="0 0 260 100" xmlns="http://www.w3.org/2000/svg">
       <rect x="4" y="4" width="252" height="92" rx="46" fill="#ff3b30"/>
       <text x="130" y="62" font-family="Arial Black, Arial, sans-serif" font-size="30" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">MISCHIEF</text>
     </svg>`
   },
   {
-    id: "text-trouble",
-    name: "TROUBLE",
-    category: "Lettering",
+    id: "text-trouble", name: "TROUBLE", category: "Lettering",
     svg: `<svg viewBox="0 0 300 90" xmlns="http://www.w3.org/2000/svg">
-      <text x="150" y="65" font-family="Arial Black, Arial, sans-serif" font-size="52" font-weight="900" fill="#f3f2ee" text-anchor="middle" letter-spacing="1">TROUBLE</text>
+      <text x="150" y="65" font-family="Arial Black, Arial, sans-serif" font-size="52" font-weight="900" fill="#f3f2ee" stroke="#0a0a0b" stroke-width="1.5" text-anchor="middle" letter-spacing="1">TROUBLE</text>
     </svg>`
   },
   {
-    id: "text-norules",
-    name: "NO RULES",
-    category: "Lettering",
+    id: "text-norules", name: "NO RULES", category: "Lettering",
     svg: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
-      <text x="150" y="48" font-family="Arial Black, Arial, sans-serif" font-size="34" font-weight="900" fill="#0a0a0b" text-anchor="middle" letter-spacing="1">NO</text>
-      <text x="150" y="92" font-family="Arial Black, Arial, sans-serif" font-size="34" font-weight="900" fill="#0a0a0b" text-anchor="middle" letter-spacing="1">RULES</text>
+      <g font-family="Arial Black, Arial, sans-serif" font-size="34" font-weight="900" fill="#ff3b30" stroke="#f3f2ee" stroke-width="1.2" text-anchor="middle" letter-spacing="1">
+        <text x="150" y="48">NO</text><text x="150" y="92">RULES</text>
+      </g>
     </svg>`
   },
   {
-    id: "text-1996",
-    name: "Est. Badge",
-    category: "Lettering",
+    id: "text-drop01", name: "Drop Badge", category: "Lettering",
     svg: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
       <circle cx="100" cy="100" r="90" fill="none" stroke="#f3f2ee" stroke-width="4"/>
       <circle cx="100" cy="100" r="78" fill="none" stroke="#f3f2ee" stroke-width="2"/>
       <text x="100" y="70" font-family="Arial Black, Arial, sans-serif" font-size="18" fill="#f3f2ee" text-anchor="middle" letter-spacing="3">MISCHIEF</text>
-      <text x="100" y="115" font-family="Arial Black, Arial, sans-serif" font-size="30" font-weight="900" fill="#f3f2ee" text-anchor="middle">2019</text>
+      <text x="100" y="115" font-family="Arial Black, Arial, sans-serif" font-size="30" font-weight="900" fill="#f3f2ee" text-anchor="middle">DROP 01</text>
       <text x="100" y="145" font-family="Arial Black, Arial, sans-serif" font-size="14" fill="#f3f2ee" text-anchor="middle" letter-spacing="3">NO RULES</text>
     </svg>`
   }
 ];
 
-function presetDataUri(preset) {
-  return "data:image/svg+xml;utf8," + encodeURIComponent(preset.svg.trim());
-}
-
-function getPresetById(id) {
-  return DESIGN_PRESETS.find((p) => p.id === id);
-}
+export const presetDataUri = (preset) => "data:image/svg+xml;utf8," + encodeURIComponent(preset.svg.trim());
+export const getPresetById = (id) => DESIGN_PRESETS.find((p) => p.id === id);
