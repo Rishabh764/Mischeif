@@ -109,7 +109,9 @@ body[data-view="shop"], body[data-view="product"] { touch-action: pan-y; }
 .menu__list a {
   display: flex; align-items: baseline; gap: clamp(14px, 2vw, 30px);
   font-family: var(--display); font-weight: 900; text-transform: uppercase;
-  font-size: clamp(60px, 15vh, 180px); line-height: 0.9; letter-spacing: -0.01em;
+  /* Sized by whichever is tighter, height or width, so the longest word
+     ("SHOWROOM") always fits on one line of a phone screen. */
+  font-size: clamp(44px, min(15vh, 16.5vw), 180px); line-height: 0.94; letter-spacing: -0.01em; white-space: nowrap;
   transform: translateY(40%); opacity: 0;
   transition: transform 0.7s var(--ease), opacity 0.5s, color 0.25s;
 }
@@ -430,6 +432,11 @@ button.zone:hover { border-color: var(--red); background: rgba(255, 45, 32, 0.12
 /* ---------- Narrow screens ------------------------------------------------------------------ */
 @media (max-width: 860px) {
   .hud__logo { font-size: 24px; }
+  .menu { padding-top: 96px; justify-content: flex-start; gap: 8vh; }
+  .menu__list { display: grid; gap: 1.2vh; }
+  .menu__list a { gap: 14px; }
+  .menu__list a span { font-size: 11px; min-width: 22px; }
+  .menu__note { margin-top: auto; }
   .caption__name { font-size: clamp(42px, 13vw, 64px); }
   .rail { height: 120px; margin-top: -60px; right: 14px; }
   .drag-cue { display: none; }

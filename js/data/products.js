@@ -2,16 +2,22 @@
    MISCHIEF — Drop 01 catalogue (placeholder content for the demo store).
    Order here is the order pieces hang in the showroom corridor.
 
-   Real photography: set `images: { front, back }` to transparent cut-outs (WebP or PNG)
-   (e.g. "assets/pieces/riot-hoodie-front.webp") and the showroom uses them
-   instead of the drawn stand-in. `turntable: [...]` (12–24 frames, one full
-   spin) replaces the front/back flip on the hero piece.
+   Photos: `images: { front, back }` are transparent cut-outs (WebP or PNG).
+   A piece without them falls back to a drawn stand-in. `turntable: [...]`
+   (12–24 frames, one full spin, starting at the front and turning so the front
+   swings toward the right of the picture) gives the hero piece a true spin.
+
+   The descriptions and details below describe what the photos show. Fabric
+   names are placeholders until there are real garments.
    ========================================================================== */
+
+const piece = (id) => ({ front: `assets/pieces/${id}-front.webp`, back: `assets/pieces/${id}-back.webp` });
 
 export const PRODUCTS = [
   {
     id: "riot-hoodie",
-    images: { front: "assets/pieces/riot-hoodie-front.webp", back: "assets/pieces/riot-hoodie-back.webp" },
+    images: piece("riot-hoodie"),
+    turntable: null, // filled in below when the turntable frames exist
     name: "Riot Hoodie",
     category: "Hoodies",
     kind: "hoodie",
@@ -19,13 +25,12 @@ export const PRODUCTS = [
     price: 79,
     color: { name: "Blackout", hex: "#16161a" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-    description:
-      "Built heavyweight, cut oversized, and made to survive whatever you put it through. Garment-dyed for a broken-in feel from day one.",
-    details: ["440gsm brushed-back fleece", "Garment-dyed, faded finish", "Dropped shoulder, boxy fit", "Kangaroo pocket, reinforced drawcords", "Ribbed cuffs and hem"]
+    description: "Heavyweight black hoodie with a boxy, oversized cut. Red patch on the chest, RIOT across the back.",
+    details: ["Heavyweight brushed fleece", "Oversized fit, dropped shoulders", "Red woven patch on the chest", "RIOT print with a red underline on the back", "Kangaroo pocket, ribbed cuffs and hem"]
   },
   {
     id: "troublemaker-tee",
-    images: { front: "assets/pieces/troublemaker-tee-front.webp", back: "assets/pieces/troublemaker-tee-back.webp" },
+    images: piece("troublemaker-tee"),
     name: "Troublemaker Tee",
     category: "Tees",
     kind: "tee",
@@ -33,12 +38,12 @@ export const PRODUCTS = [
     price: 35,
     color: { name: "Blood Red", hex: "#8a1a1e" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-    description: "Heavyweight cotton, boxy fit, back-print graphic. The one everyone asks about.",
-    details: ["240gsm combed cotton", "Boxy, oversized fit", "Puff-print back graphic", "Twin-needle stitching"]
+    description: "Boxy heavyweight tee in blood red. Small wordmark on the chest, TROUBLE across the back.",
+    details: ["Heavyweight cotton jersey", "Boxy fit, dropped shoulders", "Wordmark print on the chest", "TROUBLE print on the back", "Ribbed crew neck"]
   },
   {
     id: "blackout-bomber",
-    images: { front: "assets/pieces/blackout-bomber-front.webp", back: "assets/pieces/blackout-bomber-back.webp" },
+    images: piece("blackout-bomber"),
     name: "Blackout Bomber",
     category: "Jacket",
     kind: "bomber",
@@ -46,12 +51,12 @@ export const PRODUCTS = [
     price: 149,
     color: { name: "Blackout", hex: "#131316" },
     sizes: ["S", "M", "L", "XL", "XXL"],
-    description: "Classic bomber silhouette rebuilt with a matte technical shell and quilted lining for real cold.",
-    details: ["Water-resistant technical shell", "Quilted interior lining", "Ribbed collar, cuffs and hem", "Interior zip pocket", "Embroidered sleeve badge"]
+    description: "Matte black bomber with a silver zip and a red badge on the sleeve.",
+    details: ["Matte cotton-blend shell", "Silver front zip", "Ribbed collar, cuffs and hem", "Two slanted front pockets", "Red woven badge on the left sleeve", "Tonal lettering on the back"]
   },
   {
     id: "static-hoodie",
-    images: { front: "assets/pieces/static-hoodie-front.webp", back: "assets/pieces/static-hoodie-back.webp" },
+    images: piece("static-hoodie"),
     name: "Static Hoodie",
     category: "Hoodies",
     kind: "hoodie",
@@ -59,12 +64,12 @@ export const PRODUCTS = [
     price: 89,
     color: { name: "Bone", hex: "#e4dfd5" },
     sizes: ["XS", "S", "M", "L", "XL"],
-    description: "Tonal noise-print graphics on a cropped silhouette. Built for layering, styled for trouble.",
-    details: ["360gsm loopback fleece", "Cropped boxy fit", "All-over tonal static print", "Double-layer hood", "Raw-cut hem"]
+    description: "Cropped, boxy hoodie in bone with a heathered static texture and small red glitch marks.",
+    details: ["Heathered fleece", "Cropped boxy fit, raw-cut hem", "Red glitch marks front and back", "Kangaroo pocket", "Ribbed cuffs"]
   },
   {
     id: "sneak-cargo",
-    images: { front: "assets/pieces/sneak-cargo-front.webp", back: "assets/pieces/sneak-cargo-back.webp" },
+    images: piece("sneak-cargo"),
     name: "Sneak Cargo",
     category: "Bottoms",
     kind: "cargo",
@@ -72,12 +77,12 @@ export const PRODUCTS = [
     price: 95,
     color: { name: "Storm Grey", hex: "#5b5f66" },
     sizes: ["28", "30", "32", "34", "36", "38"],
-    description: "Utility cargo with a tapered leg and triple-stitched pockets. Made for carrying trouble.",
-    details: ["Ripstop cotton twill", "Tapered fit", "Six-pocket cargo construction", "Elastic waist with drawcord", "Ankle zip closure"]
+    description: "Tapered cargo pants in storm grey with flap pockets on both thighs.",
+    details: ["Cotton twill", "Tapered leg with ankle zips", "Flap cargo pockets on both thighs", "Two back pockets", "Elastic waist with drawcord", "Red label on the back waistband"]
   },
   {
     id: "staticnoise-tee",
-    images: { front: "assets/pieces/staticnoise-tee-front.webp", back: "assets/pieces/staticnoise-tee-back.webp" },
+    images: piece("staticnoise-tee"),
     name: "Static Noise Tee",
     category: "Tees",
     kind: "tee",
@@ -85,12 +90,12 @@ export const PRODUCTS = [
     price: 39,
     color: { name: "Bone", hex: "#e4dfd5" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-    description: "Companion piece to the Static Hoodie. Tonal noise graphic wrapped around a relaxed heavyweight tee.",
-    details: ["260gsm cotton", "Relaxed fit", "All-over front print", "Dropped shoulder seam"]
+    description: "Bone tee covered in a static print, front and back, with STATIC across the shoulders.",
+    details: ["Heavyweight cotton jersey", "Boxy fit", "All-over static print", "STATIC print on the back", "Ribbed crew neck"]
   },
   {
     id: "curfew-hoodie",
-    images: { front: "assets/pieces/curfew-hoodie-front.webp", back: "assets/pieces/curfew-hoodie-back.webp" },
+    images: piece("curfew-hoodie"),
     name: "Curfew Hoodie",
     category: "Hoodies",
     kind: "hoodie",
@@ -98,12 +103,12 @@ export const PRODUCTS = [
     price: 85,
     color: { name: "Storm Grey", hex: "#5b5f66" },
     sizes: ["S", "M", "L", "XL", "XXL"],
-    description: "The midweight hoodie. Clean lines, minimal branding, built for late-night missions.",
-    details: ["380gsm cotton fleece blend", "Relaxed unisex fit", "Split-stitch hood lining", "Embroidered chest hit", "Pre-shrunk"]
+    description: "Storm-grey hoodie with a washed finish. Tonal wordmark on the chest, CURFEW across the back.",
+    details: ["Midweight fleece, washed finish", "Relaxed oversized fit", "Tonal wordmark on the chest", "CURFEW print on the back", "Kangaroo pocket, ribbed cuffs and hem"]
   },
   {
     id: "riot-cap",
-    images: { front: "assets/pieces/riot-cap-front.webp", back: "assets/pieces/riot-cap-back.webp" },
+    images: piece("riot-cap"),
     name: "Riot Cap",
     category: "Accessories",
     kind: "cap",
@@ -111,12 +116,12 @@ export const PRODUCTS = [
     price: 35,
     color: { name: "Bone", hex: "#e4dfd5" },
     sizes: ["One Size"],
-    description: "Structured six-panel cap with a low profile and embroidered front logo. Adjustable strap-back.",
-    details: ["Cotton twill", "Structured six-panel", "Embroidered logo", "Adjustable strap-back"]
+    description: "Six-panel cap in bone twill with a red M patch on the front and a strap-back.",
+    details: ["Cotton twill", "Six-panel, curved brim", "Red M patch on the front", "Adjustable strap with a metal buckle"]
   },
   {
     id: "nightcrawler-tee",
-    images: { front: "assets/pieces/nightcrawler-tee-front.webp", back: "assets/pieces/nightcrawler-tee-back.webp" },
+    images: piece("nightcrawler-tee"),
     name: "Nightcrawler Tee",
     category: "Tees",
     kind: "longsleeve",
@@ -124,12 +129,12 @@ export const PRODUCTS = [
     price: 39,
     color: { name: "Blackout", hex: "#16161a" },
     sizes: ["S", "M", "L", "XL", "XXL"],
-    description: "Long-sleeve heavyweight tee for nights that run too late. Ribbed cuffs keep it locked in place.",
-    details: ["260gsm cotton", "Long sleeve, regular fit", "Ribbed cuffs", "Chest and sleeve print"]
+    description: "Black long-sleeve tee with a red chest patch, red stripes on the sleeve and NIGHT across the back.",
+    details: ["Heavyweight cotton jersey", "Long sleeves, ribbed cuffs", "Red patch on the chest", "Three red stripes on the left sleeve", "NIGHT print on the back"]
   },
   {
     id: "static-beanie",
-    images: { front: "assets/pieces/static-beanie-front.webp", back: "assets/pieces/static-beanie-back.webp" },
+    images: piece("static-beanie"),
     name: "Static Beanie",
     category: "Accessories",
     kind: "beanie",
@@ -137,8 +142,8 @@ export const PRODUCTS = [
     price: 29,
     color: { name: "Blood Red", hex: "#8a1a1e" },
     sizes: ["One Size"],
-    description: "Ribbed knit beanie with a folded cuff and woven label. One size, all attitude.",
-    details: ["Acrylic rib knit", "Folded cuff", "Woven brand label"]
+    description: "Chunky rib-knit beanie in blood red with a wide cuff and a woven label.",
+    details: ["Chunky rib knit", "Wide folded cuff", "Woven label on the front"]
   }
 ];
 
