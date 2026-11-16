@@ -1,36 +1,42 @@
 /* ==========================================================================
-   MISCHIEF — Design Studio garment silhouettes (Tee / Hoodie, Front / Back)
-   All shapes share a 480x600 viewBox so print-zone overlays can be positioned
-   with simple percentages that line up with the art.
+   MISCHIEF — Design Studio garments (Tee / Hoodie, Front / Back).
+   Each garment is a photo turned into a greyscale "shading map"
+   (assets/studio/<type>-<view>.webp). The browser tints that map with the
+   chosen colour, so the folds and fabric stay real while the colour changes
+   live. The ribbed parts (collar, sleeve hems, cuffs, bottom hem) are tinted
+   separately with the trim colour.
+
+   Everything is laid out on a 480x600 grid that matches the photos, so the
+   print zones and the trim shapes below line up with the garment.
    ========================================================================== */
 
 export const GARMENT_VIEWBOX = { w: 480, h: 600 };
 
-/* Zone rects, in viewBox units — single source of truth, also used for the
-   CSS overlay positioning (converted to % by zoneToPercent). */
+/* Print zones, in grid units — single source of truth, also used for the
+   overlay positioning (converted to % by zoneToPercent). */
 export const GARMENT_ZONES = {
   tee: {
     front: {
-      neck: { x: 205, y: 108, w: 70, h: 28, label: "Neck" },
-      front: { x: 160, y: 158, w: 160, h: 220, label: "Front" },
-      sleeveLeft: { x: 52, y: 172, w: 72, h: 68, label: "Left Sleeve" },
-      sleeveRight: { x: 356, y: 172, w: 72, h: 68, label: "Right Sleeve" }
+      neck: { x: 205, y: 152, w: 70, h: 26, label: "Neck" },
+      front: { x: 150, y: 188, w: 180, h: 230, label: "Front" },
+      sleeveLeft: { x: 66, y: 212, w: 54, h: 62, label: "Left Sleeve" },
+      sleeveRight: { x: 360, y: 212, w: 54, h: 62, label: "Right Sleeve" }
     },
     back: {
-      back: { x: 150, y: 150, w: 180, h: 290, label: "Back" },
-      hem: { x: 205, y: 522, w: 70, h: 26, label: "Hem" }
+      back: { x: 145, y: 128, w: 190, h: 300, label: "Back" },
+      hem: { x: 205, y: 460, w: 70, h: 26, label: "Hem" }
     }
   },
   hoodie: {
     front: {
-      neck: { x: 205, y: 128, w: 70, h: 26, label: "Neck" },
-      front: { x: 150, y: 175, w: 180, h: 175, label: "Front" },
-      sleeveLeft: { x: 50, y: 185, w: 72, h: 68, label: "Left Sleeve" },
-      sleeveRight: { x: 358, y: 185, w: 72, h: 68, label: "Right Sleeve" }
+      neck: { x: 205, y: 158, w: 70, h: 26, label: "Neck" },
+      front: { x: 150, y: 192, w: 180, h: 156, label: "Front" },
+      sleeveLeft: { x: 64, y: 286, w: 48, h: 86, label: "Left Sleeve" },
+      sleeveRight: { x: 368, y: 286, w: 48, h: 86, label: "Right Sleeve" }
     },
     back: {
-      back: { x: 150, y: 165, w: 180, h: 280, label: "Back" },
-      hem: { x: 205, y: 522, w: 70, h: 26, label: "Hem" }
+      back: { x: 150, y: 202, w: 180, h: 240, label: "Back" },
+      hem: { x: 205, y: 450, w: 70, h: 26, label: "Hem" }
     }
   }
 };
@@ -49,6 +55,81 @@ export function zoneToPercent(rect) {
   };
 }
 
+/* ---------- Photo garment --------------------------------------------------- */
+
+/* Where the trim colour goes, as white shapes on the same grid. They are
+   feathered and clipped by the photo itself, so they only need to be close. */
+const band = (d, width) => `<path d="${d}" fill="none" stroke="#fff" stroke-width="${width}"/>`;
+const area = (points) => `<polygon points="${points}" fill="#fff"/>`;
+const TEE_SLEEVE_HEMS = band("M35,268 L125,312", 11) + band("M445,268 L355,312", 11);
+const TRIM_SHAPES = {
+  tee: {
+    front: band("M181,99 C196,150 284,150 299,99", 16) + TEE_SLEEVE_HEMS + band("M118,500 L362,500", 14),
+    back: band("M182,97 Q240,101 298,97", 16) + TEE_SLEEVE_HEMS + band("M118,502 L362,502", 14)
+  },
+  hoodie: {
+    front: area("44,506 97,512 97,552 44,552") + area("436,506 383,512 383,552 436,552")
+      + `<path d="M114,488 Q240,502 366,488 L366,536 L114,536 Z" fill="#fff"/>`,
+    back: area("42,503 97,508 97,548 42,548") + area("438,503 383,508 383,548 438,548")
+      + `<path d="M114,480 Q240,494 366,480 L366,528 L114,528 Z" fill="#fff"/>`
+  }
+};
+
+const rgb = (hex) => {
+  const c = hex.replace("#", "");
+  const n = parseInt(c.length === 3 ? c.split("").map((x) => x + x).join("") : c, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+
+/** A "gradient map" filter: shading-map black becomes a deep shadow of the
+ *  colour, mid grey the colour itself, white its highlight. */
+function tintFilter(id, hex) {
+  const base = rgb(hex);
+  const lum = (0.299 * base[0] + 0.587 * base[1] + 0.114 * base[2]) / 255;
+  const lift = 0.2 - 0.06 * lum; // dark colours need a slightly stronger highlight for the folds to read
+  const table = (i) => {
+    const v = base[i];
+    const dark = v * 0.42, light = v + (255 - v) * lift;
+    return [dark, (dark + v) / 2, v, (v + light) / 2, light].map((x) => (x / 255).toFixed(3)).join(" ");
+  };
+  return `<filter id="${id}" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="${table(0)}"/>
+        <feFuncG type="table" tableValues="${table(1)}"/>
+        <feFuncB type="table" tableValues="${table(2)}"/>
+      </feComponentTransfer>
+    </filter>`;
+}
+
+/**
+ * Inline <svg> string for the Studio garment.
+ * @param {"tee"|"hoodie"} type
+ * @param {"front"|"back"} view
+ * @param {string} mainColor hex
+ * @param {string} trimColor hex (collar / sleeve hems / cuffs / bottom hem)
+ */
+export function garmentSVG(type, view, mainColor, trimColor) {
+  const uid = `${type}-${view}-${Math.random().toString(36).slice(2, 7)}`;
+  const photo = `<image href="assets/studio/${type}-${view}.webp" width="480" height="600" preserveAspectRatio="none"`;
+  return `
+<svg viewBox="0 0 480 600" xmlns="http://www.w3.org/2000/svg" class="garment-svg" role="img" aria-label="${type === "hoodie" ? "Hoodie" : "T-shirt"}, ${view}">
+  <defs>
+    ${tintFilter(`main-${uid}`, mainColor)}
+    ${tintFilter(`trim-${uid}`, trimColor)}
+    <filter id="soft-${uid}" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="1.4"/></filter>
+    <mask id="mask-${uid}" maskUnits="userSpaceOnUse" x="0" y="0" width="480" height="600">
+      <g filter="url(#soft-${uid})">${TRIM_SHAPES[type][view]}</g>
+    </mask>
+  </defs>
+  ${photo} filter="url(#main-${uid})"/>
+  ${photo} filter="url(#trim-${uid})" mask="url(#mask-${uid})"/>
+</svg>`.trim();
+}
+
+/* ---------- Drawn shapes ----------------------------------------------------
+   Only used by the showroom's stand-in art (js/scene/standins.js), for a piece
+   that has no photo yet. */
+
 /** amt: -1..1 — negative darkens, positive lightens. */
 export function shade(hex, amt) {
   const c = hex.replace("#", "");
@@ -59,7 +140,7 @@ export function shade(hex, amt) {
   return `rgb(${r},${g},${b})`;
 }
 
-/** Base torso + short sleeves silhouette (shared by the Studio tee & hoodie). */
+/** Base torso + short sleeves silhouette. */
 export function torsoPath(neckDip) {
   return `M150,90
     C150,90 172,66 205,${58 + neckDip}
@@ -68,10 +149,6 @@ export function torsoPath(neckDip) {
     L428,168 L398,228 L344,202
     L344,560 L136,560 L136,202
     L82,228 L52,168 Z`;
-}
-
-function ribbing(y, trimColor) {
-  return `<rect x="150" y="${y}" width="180" height="14" rx="6" fill="${trimColor}" opacity="0.9"/>`;
 }
 
 export function hoodShape(mode, mainColor) {
@@ -90,57 +167,4 @@ export function hoodShape(mode, mainColor) {
     <path d="M158,96 C158,30 196,4 240,4 C284,4 322,30 322,96 C322,118 300,128 240,128 C180,128 158,118 158,96 Z"
           fill="${mainColor}" stroke="${shade(mainColor, -0.25)}" stroke-width="3"/>
     <path d="M240,10 C270,10 300,32 300,80" fill="none" stroke="${shade(mainColor, 0.25)}" stroke-width="4" opacity="0.5" stroke-linecap="round"/>`;
-}
-
-/**
- * Inline <svg> string for the Studio garment.
- * @param {"tee"|"hoodie"} type
- * @param {"front"|"back"} view
- * @param {string} mainColor hex
- * @param {string} trimColor hex (ribbing / cuffs / hem)
- */
-export function garmentSVG(type, view, mainColor, trimColor) {
-  const isHoodie = type === "hoodie";
-  const neckDip = view === "front" ? (isHoodie ? 14 : 26) : 10;
-  const body = torsoPath(neckDip);
-  const dark = shade(mainColor, -0.22);
-  const light = shade(mainColor, 0.16);
-  const uid = `${type}-${view}-${Math.random().toString(36).slice(2, 7)}`;
-
-  const extras = isHoodie && view === "front" ? hoodShape("front", mainColor) : "";
-  const pocket = isHoodie && view === "front"
-    ? `<path d="M186,360 C186,392 200,412 240,412 C280,412 294,392 294,360 L294,352 L186,352 Z"
-      fill="none" stroke="${dark}" stroke-width="3" opacity="0.7"/>`
-    : "";
-
-  const cuffLeft = `<rect x="52" y="210" width="30" height="14" rx="6" fill="${trimColor}" transform="rotate(-18 67 217)" opacity="0.9"/>`;
-  const cuffRight = `<rect x="398" y="210" width="30" height="14" rx="6" fill="${trimColor}" transform="rotate(18 413 217)" opacity="0.9"/>`;
-  const hoodOnTop = isHoodie && view === "back" ? hoodShape("back", mainColor) : "";
-
-  return `
-<svg viewBox="0 0 480 600" xmlns="http://www.w3.org/2000/svg" class="garment-svg">
-  <defs>
-    <linearGradient id="fabric-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="${light}"/>
-      <stop offset="45%" stop-color="${mainColor}"/>
-      <stop offset="100%" stop-color="${dark}"/>
-    </linearGradient>
-    <radialGradient id="sheen-${uid}" cx="35%" cy="20%" r="70%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
-      <stop offset="60%" stop-color="#ffffff" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-
-  <path d="${body}" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="6" stroke-linejoin="round"/>
-  <path d="${body}" fill="url(#fabric-${uid})" stroke="${dark}" stroke-width="3" stroke-linejoin="round"/>
-  ${pocket}
-  ${extras}
-  ${ribbing(546, trimColor)}
-  ${cuffLeft}
-  ${cuffRight}
-  ${view === "front" && !isHoodie ? `<path d="M205,${58 + neckDip} C222,80 258,80 275,${58 + neckDip}" fill="none" stroke="${trimColor}" stroke-width="5" opacity="0.85"/>` : ""}
-  ${view === "back" ? `<path d="M205,${64 + neckDip} C222,${72 + neckDip} 258,${72 + neckDip} 275,${64 + neckDip}" fill="none" stroke="${trimColor}" stroke-width="5" opacity="0.85"/>` : ""}
-  ${hoodOnTop}
-  <path d="${body}" fill="url(#sheen-${uid})"/>
-</svg>`.trim();
 }

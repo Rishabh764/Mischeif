@@ -83,7 +83,11 @@ export default function studio({ stage, root, ui }) {
         </div>
       </div>`;
     }).join("");
-    host.innerHTML = `<div class="garment-wrap">${garmentSVG(state.garment, state.view, state.mainColor, state.trimColor)}</div>${hotspots}`;
+    // Light garments get dark zone outlines and labels, so they stay readable.
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(state.mainColor.slice(i, i + 2), 16));
+    host.dataset.tone = 0.299 * r + 0.587 * g + 0.114 * b > 150 ? "light" : "dark";
+    // The zones sit inside the same box as the photo, so they share its grid exactly.
+    host.innerHTML = `<div class="garment-wrap">${garmentSVG(state.garment, state.view, state.mainColor, state.trimColor)}${hotspots}</div>`;
 
     host.querySelectorAll("[data-zone]").forEach((el) => {
       const key = el.dataset.zone;

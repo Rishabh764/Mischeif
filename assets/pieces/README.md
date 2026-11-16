@@ -4,9 +4,11 @@ The showroom uses a transparent cut-out PNG for each side of each piece. Any pie
 
 ## Status
 
-All ten pieces have a front and a back photo (20 files, about 0.8 MB in total). They were generated with Canva's AI image tool on a green screen, cut out, and saved as WebP. The Curfew Hoodie and Static Noise Tee fronts were made by recolouring the Riot Hoodie and Troublemaker Tee photos.
+All ten pieces have a front and a back photo (20 files, about 0.8 MB in total). They were generated with Canva's AI image tool on a green screen, cut out, and saved as WebP. The Curfew Hoodie front was made by recolouring the Riot Hoodie photo. The Static Noise Tee front was generated with its back as the reference, so the two sides match.
 
-Still missing: a turntable sequence for the hero piece (see below).
+The Design Studio's blank tee and hoodie live in `assets/studio/` (front and back of each). They are grey photos turned into greyscale shading maps, which the Studio tints live with the chosen garment and trim colours; see `js/studio/garment-art.js`.
+
+The hero piece (Riot Hoodie) also has a 12-frame turntable, `riot-hoodie-turn-000.webp` to `riot-hoodie-turn-330.webp`, one frame every 30°. The 0° and 180° frames are the front and back photos; the other ten were generated in Canva with the front and back as references. Unlike the other cut-outs, the turntable frames are all scaled to the same garment height, so the hoodie doesn't grow and shrink as the narrow side views come round.
 
 ## Adding a photo
 
@@ -17,7 +19,7 @@ Still missing: a turntable sequence for the hero piece (see below).
 
 A piece with a front photo but no back photo shows the front on both sides.
 
-For a true hero spin, add `turntable: [...]` to a piece with 12–24 frames of one full rotation.
+For a true hero spin, add `turntable: [...]` to a piece with 12–24 frames of one full rotation, starting at the front and turning so the front swings toward the right of the picture. Frame every angle at the same garment height.
 
 ## Prompts
 
@@ -38,7 +40,7 @@ For every **back** view, give the generator the matching front image as a refere
 | `static-hoodie-back` | Cropped boxy bone off-white hoodie, hood on the upper back, tonal grey TV-static print all over, a few tiny red glitch marks |
 | `sneak-cargo-front` | Tapered storm-grey ripstop cargo pants, elastic waist with drawcord, flap cargo pockets on both thighs, ankle zips |
 | `sneak-cargo-back` | Same cargo pants from behind, two back pockets, small red label on the waistband |
-| `staticnoise-tee-front` | Relaxed bone off-white tee, front covered in a tonal grey TV-static print, a few tiny red glitch marks |
+| `staticnoise-tee-front` | Generated from the back as reference: the same bone tee and static print seen from the front, small dark grey "MISCHIEF" wordmark on the left chest |
 | `staticnoise-tee-back` | Same tee from behind, plain, with "STATIC" in dark grey across the upper back |
 | `curfew-hoodie-front` | Clean midweight storm-grey hoodie, small tonal embroidered "MISCHIEF" on the left chest |
 | `curfew-hoodie-back` | Same hoodie from behind, "CURFEW" in off-white across the upper back |

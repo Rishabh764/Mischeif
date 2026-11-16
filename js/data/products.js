@@ -12,12 +12,14 @@
    ========================================================================== */
 
 const piece = (id) => ({ front: `assets/pieces/${id}-front.webp`, back: `assets/pieces/${id}-back.webp` });
+// 12 frames, one every 30°, all scaled to the same garment height.
+const turn = (id) => Array.from({ length: 12 }, (_, i) => `assets/pieces/${id}-turn-${String(i * 30).padStart(3, "0")}.webp`);
 
 export const PRODUCTS = [
   {
     id: "riot-hoodie",
     images: piece("riot-hoodie"),
-    turntable: null, // filled in below when the turntable frames exist
+    turntable: turn("riot-hoodie"),
     name: "Riot Hoodie",
     category: "Hoodies",
     kind: "hoodie",
@@ -90,8 +92,8 @@ export const PRODUCTS = [
     price: 39,
     color: { name: "Bone", hex: "#e4dfd5" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-    description: "Bone tee covered in a static print, front and back, with STATIC across the shoulders.",
-    details: ["Heavyweight cotton jersey", "Boxy fit", "All-over static print", "STATIC print on the back", "Ribbed crew neck"]
+    description: "Bone tee covered in a static print, front and back. Small MISCHIEF wordmark on the chest, STATIC across the shoulders.",
+    details: ["Heavyweight cotton jersey", "Boxy fit", "All-over static print", "MISCHIEF wordmark on the chest", "STATIC print on the back", "Ribbed crew neck"]
   },
   {
     id: "curfew-hoodie",
