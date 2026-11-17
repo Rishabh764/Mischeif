@@ -16,10 +16,10 @@ import { PIECE_H, FLOOR_GAP, HOOK_Y } from "./garment.js";
 
 export const FLOOR_Y = -(PIECE_H / 2 + FLOOR_GAP); // -2.55
 export const CEIL_Y = FLOOR_Y + 6.4;                // ceiling ≈ 3.2 m
-export const ROOM_W = 4.6;                          // half-width: walls at ±4.6
+const ROOM_W = 4.6;                          // half-width: walls at ±4.6
 export const GAP = 6;                               // distance between pieces along the aisle
 export const SLOT0_Z = -9;                          // first piece in the aisle
-export const Z_FRONT = 10;                          // entrance wall
+const Z_FRONT = 10;                          // entrance wall
 export const RING_Z = -3.1;                         // carousel centre (Shop page)
 export const PLINTH_TOP = FLOOR_Y + 1.75;           // display plinths ≈ 0.9 m tall
 
@@ -28,8 +28,9 @@ const WALL_TINT = 0xfff6ec;
 const INK = "#141416", RED = "#e8251a";
 
 const loader = new THREE.TextureLoader();
+let onTextureLoad = () => {}; // set by buildShowroom: ask the stage for a fresh frame
 function tex(url, renderer, { color = false, repeat = [1, 1], rotation = 0 } = {}) {
-  const t = loader.load(url);
+  const t = loader.load(url, () => onTextureLoad());
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(repeat[0], repeat[1]);
   t.rotation = rotation;
@@ -61,8 +62,26 @@ function beamMaterial() {
 
 export function buildShowroom(stage, count) {
   const { scene, renderer } = stage;
+  onTextureLoad = () => stage.requestRender();
   const q = stage.quality;
   const room = new THREE.Group();
+
+  // A spotlight's pool of light on the floor, painted on: a soft warm ellipse,
+  // brightest in the middle (what the real lights used to compute per pixel).
+  const poolTex = canvasTexture(256, 256, (ctx, w, h) => {
+    const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+    g.addColorStop(0, "rgba(255,230,196,1)");
+    g.addColorStop(0.45, "rgba(255,224,186,0.55)");
+    g.addColorStop(1, "rgba(255,220,180,0)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  });
+  const poolGeo = new THREE.PlaneGeometry(1, 1);
+  const floorPool = (x, z, w, d, strength) => {
+    const m = new THREE.Mesh(poolGeo, new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: strength }));
+    m.rotation.x = -Math.PI / 2; m.scale.set(w, d, 1);
+    m.position.set(x, FLOOR_Y + 0.012, z);
+    return m;
+  };
   const zEnd = SLOT0_Z - (count - 1) * GAP - 9;    // far wall
   const length = Z_FRONT - zEnd, zMid = (Z_FRONT + zEnd) / 2;
 
@@ -76,7 +95,6 @@ export function buildShowroom(stage, count) {
   }));
   floor.rotation.x = -Math.PI / 2;
   floor.position.set(0, FLOOR_Y, zMid);
-  floor.receiveShadow = true;
   room.add(floor);
 
   const wallMat = (len, h, tint = WALL_TINT) => new THREE.MeshStandardMaterial({
@@ -89,11 +107,10 @@ export function buildShowroom(stage, count) {
     const wall = new THREE.Mesh(new THREE.PlaneGeometry(length, H), wallMat(length, H));
     wall.rotation.y = -side * Math.PI / 2;
     wall.position.set(side * ROOM_W, yMid, zMid);
-    wall.receiveShadow = true;
     room.add(wall);
   }
   const endWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_W * 2, H), wallMat(ROOM_W * 2, H));
-  endWall.position.set(0, yMid, zEnd); endWall.receiveShadow = true; room.add(endWall);
+  endWall.position.set(0, yMid, zEnd); room.add(endWall);
   const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_W * 2, H), wallMat(ROOM_W * 2, H));
   frontWall.rotation.y = Math.PI; frontWall.position.set(0, yMid, Z_FRONT); room.add(frontWall);
   const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_W * 2, length), wallMat(ROOM_W * 2, length, 0xfffbf5));
@@ -104,7 +121,7 @@ export function buildShowroom(stage, count) {
   const gapMat = new THREE.MeshStandardMaterial({ color: 0x8c8378, roughness: 0.9 });
   for (const side of [-1, 1]) {
     const sk = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.22, length), skirtMat);
-    sk.position.set(side * (ROOM_W - 0.025), FLOOR_Y + 0.11, zMid); sk.receiveShadow = true; room.add(sk);
+    sk.position.set(side * (ROOM_W - 0.025), FLOOR_Y + 0.11, zMid); room.add(sk);
     const sg = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.05, length), gapMat);
     sg.position.set(side * (ROOM_W - 0.015), CEIL_Y - 0.03, zMid); room.add(sg);
   }
@@ -128,13 +145,13 @@ export function buildShowroom(stage, count) {
       if (zz < zEnd + 4) continue;
       const W = 2.6, NH = 4.2, D = 0.5, y0 = FLOOR_Y + 1.1;
       const g = new THREE.Group();
-      const back = new THREE.Mesh(new THREE.PlaneGeometry(W, NH), nicheMat); back.position.set(0, NH / 2, -D); back.receiveShadow = true; g.add(back);
+      const back = new THREE.Mesh(new THREE.PlaneGeometry(W, NH), nicheMat); back.position.set(0, NH / 2, -D); g.add(back);
       for (const sx of [-1, 1]) { const s = new THREE.Mesh(new THREE.BoxGeometry(0.06, NH, D), frameMat); s.position.set(sx * W / 2, NH / 2, -D / 2); g.add(s); }
       const top = new THREE.Mesh(new THREE.BoxGeometry(W, 0.06, D), frameMat); top.position.set(0, NH, -D / 2); g.add(top);
       const bot = new THREE.Mesh(new THREE.BoxGeometry(W, 0.08, D), frameMat); bot.position.set(0, 0, -D / 2); g.add(bot);
       const led = new THREE.Mesh(new THREE.BoxGeometry(W - 0.2, 0.025, 0.04), ledMat); led.position.set(0, NH - 0.06, -0.08); g.add(led);
       const wash = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.1, NH * 0.9), washMat); wash.position.set(0, NH - NH * 0.45, -D + 0.01); g.add(wash);
-      for (const sy of [1.25, 2.55]) { const sh = new THREE.Mesh(new THREE.BoxGeometry(W - 0.12, 0.05, D - 0.04), shelfMat); sh.position.set(0, sy, -D / 2 - 0.02); sh.castShadow = sh.receiveShadow = true; g.add(sh); }
+      for (const sy of [1.25, 2.55]) { const sh = new THREE.Mesh(new THREE.BoxGeometry(W - 0.12, 0.05, D - 0.04), shelfMat); sh.position.set(0, sy, -D / 2 - 0.02); g.add(sh); }
       // A built-out niche: its back panel touches the wall, its frame stands D proud of it.
       g.rotation.y = -side * Math.PI / 2;
       g.position.set(side * (ROOM_W - D - 0.002), y0, zz);
@@ -211,14 +228,11 @@ export function buildShowroom(stage, count) {
     room.add(f);
     return f;
   };
-  const makeSpot = (intensity, angle, shadow) => {
+  // Real spotlights live in the garments' layer (stage.pieces): they light the
+  // cloth, not the room (the room's pools of light are painted on, see poolMat).
+  const makeSpot = (intensity, angle) => {
     const s = new THREE.SpotLight(WARM, intensity, 14, angle, 0.72, 1.35);
-    if (shadow && q.shadows) {
-      s.castShadow = true; s.shadow.mapSize.set(q.shadowSize, q.shadowSize);
-      s.shadow.bias = -0.0005; s.shadow.normalBias = 0.02; s.shadow.radius = 6; s.shadow.blurSamples = 12;
-      s.shadow.camera.near = 0.5; s.shadow.camera.far = 14;
-    }
-    scene.add(s, s.target);
+    stage.pieces.add(s, s.target);
     return s;
   };
   const makeBeam = () => { const b = new THREE.Mesh(beamGeo, beamMaterial()); room.add(b); return b; };
@@ -233,25 +247,37 @@ export function buildShowroom(stage, count) {
   for (let i = 0; i < count; i++) {
     const rail = new THREE.Group();
     const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 1.5, 12), railMat);
-    bar.rotation.z = Math.PI / 2; bar.castShadow = true; rail.add(bar);
+    bar.rotation.z = Math.PI / 2; rail.add(bar);
     for (const sx of [-0.68, 0.68]) {
       const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, CEIL_Y - HOOK_Y), railMat);
       rod.position.set(sx, (CEIL_Y - HOOK_Y) / 2, 0); rail.add(rod);
     }
     room.add(rail);
-    const spot = makeSpot(q.spotIntensity, 0.4, false);
     const beam = makeBeam();
-    slots.push({ rail, spot, beam, fixture: null });
+    const pool = floorPool(0, 0, 2.3, 3.4, 0.34);
+    room.add(pool);
+    slots.push({ rail, beam, pool, fixture: null, from: new THREE.Vector3(), target: new THREE.Vector3() });
   }
 
+  // Real spotlights only for the pieces nearest ahead of the visitor: a small pool
+  // that follows you down the aisle. Each light fades with distance, so handing a
+  // light from one piece to the next can't be seen. (Every light costs work on
+  // every pixel; ten of them, most far away in the haze, would be wasted.)
+  const POOL = q.light ? 4 : 5;
+  const FADE = q.light ? [16, 24] : [22, 30];
+  const pool = Array.from({ length: POOL }, () => makeSpot(q.spotIntensity, 0.4));
+  const smoothstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
   /* ---------- Hall: hero light, banner, carousel platform, soft downlights -- */
-  const heroSpot = makeSpot(q.spotIntensity * 1.15, 0.42, true);
+  const heroSpot = makeSpot(q.spotIntensity * 1.15, 0.42);
+  const heroPool = floorPool(0, 0, 2.6, 3.6, 0); // follows the featured piece (stage.frame)
+  room.add(heroPool);
   const heroFixture = makeFixture(new THREE.Vector3(0, CEIL_Y - 0.35, 5.0), new THREE.Vector3(0, 0, 2.4));
-  const hallLights = [];
   for (const [x, z] of [[-2.2, 1.5], [2.2, 1.5], [0, -4.5]]) {
     const s = new THREE.SpotLight(0xfff0dd, q.spotIntensity * 0.55, 13, 0.95, 0.9, 1.2);
     s.position.set(x, CEIL_Y - 0.1, z); s.target.position.set(x, FLOOR_Y, z);
-    scene.add(s, s.target); hallLights.push(s);
+    stage.pieces.add(s, s.target);
+    room.add(floorPool(x, z, 5.2, 5.2, 0.3));
     const can = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.02, 24), lensMat);
     can.position.set(x, CEIL_Y - 0.011, z); room.add(can);
   }
@@ -272,7 +298,7 @@ export function buildShowroom(stage, count) {
   const bannerH = 5.2, bannerW = bannerH * 1.6;
   const banner = new THREE.Group();
   const cloth = new THREE.Mesh(new THREE.PlaneGeometry(bannerW, bannerH, 1, 1), new THREE.MeshStandardMaterial({ map: bannerTex, roughness: 0.95, side: THREE.DoubleSide }));
-  cloth.position.y = -bannerH / 2; cloth.receiveShadow = true; banner.add(cloth);
+  cloth.position.y = -bannerH / 2; banner.add(cloth);
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, bannerW + 0.3, 12), railMat);
   pole.rotation.z = Math.PI / 2; banner.add(pole);
   const weight = pole.clone(); weight.position.y = -bannerH; banner.add(weight);
@@ -284,43 +310,57 @@ export function buildShowroom(stage, count) {
   const platform = new THREE.Mesh(new THREE.CylinderGeometry(1.14, 1.14, 0.12, 96), new THREE.MeshStandardMaterial({
     map: tex("assets/room/floor-color.jpg", renderer, { color: true, repeat: [1.2, 1.2] }), color: 0xf5ebdd, roughness: 0.5, transparent: true
   }));
-  platform.receiveShadow = true;
   platform.position.y = FLOOR_Y + 0.06;
   const halo = new THREE.Mesh(new THREE.TorusGeometry(1, 0.012, 8, 160), new THREE.MeshStandardMaterial({ color: 0x24221f, metalness: 0.85, roughness: 0.3, transparent: true }));
   halo.rotation.x = Math.PI / 2; halo.position.y = HOOK_Y;
   const edge = new THREE.Mesh(new THREE.TorusGeometry(1.14, 0.008, 6, 160), new THREE.MeshBasicMaterial({ color: 0xe8251a, transparent: true }));
   edge.rotation.x = Math.PI / 2; edge.position.y = FLOOR_Y + 0.125;
-  ring.add(platform, halo, edge);
+  const ringPool = floorPool(0, 0, 1.9, 1.9, 0.32);
+  ringPool.position.y = FLOOR_Y + 0.125; // on the platform
+  ringPool.userData.opacity = 0.3;       // its own strength; the ring fades relative to it
+  ring.add(platform, halo, edge, ringPool);
   ring.position.z = RING_Z;
   room.add(ring);
   const ringSpot = new THREE.SpotLight(WARM, 0, 16, 0.75, 0.8, 1.2);
   ringSpot.position.set(0, CEIL_Y - 0.2, RING_Z + 2.5); ringSpot.target.position.set(0, -0.5, RING_Z);
-  scene.add(ringSpot, ringSpot.target);
+  stage.pieces.add(ringSpot, ringSpot.target);
 
   scene.add(room);
 
   /* ---------- Layout (depends on screen shape) and per-frame upkeep ---------- */
   return {
-    room, banner, ring, ringSpot, heroSpot, heroFixture, hallLights, zEnd,
+    banner, heroSpot, heroFixture, heroPool,
     layout() {
       slots.forEach((s, i) => {
         const p = stage.slot(i);
         s.rail.position.set(p.x, HOOK_Y, p.z); s.rail.rotation.y = p.ry;
-        const target = new THREE.Vector3(p.x, -0.1, p.z);
-        const from = new THREE.Vector3(p.x * 0.35, CEIL_Y - 0.35, p.z + 2.2);
-        s.spot.position.copy(from); s.spot.target.position.copy(target);
+        s.target.set(p.x, -0.1, p.z);
+        s.from.set(p.x * 0.35, CEIL_Y - 0.35, p.z + 2.2);
         if (s.fixture) room.remove(s.fixture);
-        s.fixture = makeFixture(from, target);
-        aimBeam(s.beam, from, new THREE.Vector3(p.x, FLOOR_Y + 0.5, p.z - 0.2), 0.95);
+        s.fixture = makeFixture(s.from, s.target);
+        aimBeam(s.beam, s.from, new THREE.Vector3(p.x, FLOOR_Y + 0.5, p.z - 0.2), 0.95);
+        // Where this spotlight's beam lands on the floor, beyond the garment.
+        s.pool.position.set(p.x * 1.44, FLOOR_Y + 0.012, p.z - 1.5);
       });
-      this.ring.scale.set(stage.ringR, 1, stage.ringR);
+      ring.scale.set(stage.ringR, 1, stage.ringR);
     },
     /** Accessories stand on their own plinths, so their slot has no rail. */
     setAccessory(i, isAccessory) { slots[i].rail.visible = !isAccessory; },
-    update(env) {
+    update(env, eye) {
+      // Hand the pool of spotlights to the pieces nearest ahead of the camera.
+      const ahead = slots
+        .filter((s) => s.target.z < eye.z + 1.5)
+        .map((s) => ({ s, d: Math.hypot(s.target.x - eye.x, eye.z - s.target.z) }))
+        .sort((a, b) => a.d - b.d);
+      pool.forEach((L, j) => {
+        const o = ahead[j];
+        if (!o) { L.intensity = 0; return; }
+        L.position.copy(o.s.from); L.target.position.copy(o.s.target);
+        L.intensity = q.spotIntensity * (1 - smoothstep(FADE[0], FADE[1], o.d));
+      });
       // Ring dressing fades with the Shop page; its light follows.
       ring.visible = env.ring > 0.01;
-      ring.traverse((o) => { if (o.material) o.material.opacity = env.ring; });
+      ring.traverse((o) => { if (o instanceof THREE.Mesh) o.material.opacity = (o.userData.opacity ?? 1) * env.ring; });
       ringSpot.intensity = q.spotIntensity * 1.4 * env.ring;
       for (const s of slots) s.beam.material.uniforms.uStrength.value = 0.09 * (0.35 + 0.65 * env.corridor);
     }

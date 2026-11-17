@@ -165,12 +165,12 @@ export default function shop({ stage, root, products, go, ui }) {
   window.addEventListener("keydown", onKey);
   // Each press moves exactly one piece on from wherever the ring is already heading,
   // so quick presses add up.
-  let queued = null;
+  let queued = null, nudgeTimer = 0;
   const nudge = (dir) => {
     queued = (queued === null ? heading() : queued) + dir;
     goTo(queued);
-    clearTimeout(nudge.timer);
-    nudge.timer = setTimeout(() => (queued = null), 700);
+    clearTimeout(nudgeTimer);
+    nudgeTimer = setTimeout(() => (queued = null), 700);
   };
   caption.querySelector("[data-prev]").addEventListener("click", () => nudge(-1));
   caption.querySelector("[data-next]").addEventListener("click", () => nudge(1));
@@ -197,7 +197,7 @@ export default function shop({ stage, root, products, go, ui }) {
     label: (actor) => (stepsTo(actor) === 0 ? "View" : "Bring"),
     destroy() {
       clearTimeout(snapTimer);
-      clearTimeout(nudge.timer);
+      clearTimeout(nudgeTimer);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointermove", onMove);

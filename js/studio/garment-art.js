@@ -10,7 +10,7 @@
    print zones and the trim shapes below line up with the garment.
    ========================================================================== */
 
-export const GARMENT_VIEWBOX = { w: 480, h: 600 };
+const GARMENT_VIEWBOX = { w: 480, h: 600 };
 
 /* Print zones, in grid units — single source of truth, also used for the
    overlay positioning (converted to % by zoneToPercent). */
@@ -124,47 +124,4 @@ export function garmentSVG(type, view, mainColor, trimColor) {
   ${photo} filter="url(#main-${uid})"/>
   ${photo} filter="url(#trim-${uid})" mask="url(#mask-${uid})"/>
 </svg>`.trim();
-}
-
-/* ---------- Drawn shapes ----------------------------------------------------
-   Only used by the showroom's stand-in art (js/scene/standins.js), for a piece
-   that has no photo yet. */
-
-/** amt: -1..1 — negative darkens, positive lightens. */
-export function shade(hex, amt) {
-  const c = hex.replace("#", "");
-  const num = parseInt(c.length === 3 ? c.split("").map((x) => x + x).join("") : c, 16);
-  let r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
-  const mix = (v) => Math.max(0, Math.min(255, Math.round(v + (amt > 0 ? (255 - v) * amt : v * amt))));
-  r = mix(r); g = mix(g); b = mix(b);
-  return `rgb(${r},${g},${b})`;
-}
-
-/** Base torso + short sleeves silhouette. */
-export function torsoPath(neckDip) {
-  return `M150,90
-    C150,90 172,66 205,${58 + neckDip}
-    C222,${52 + neckDip} 258,${52 + neckDip} 275,${58 + neckDip}
-    C308,66 330,90 330,90
-    L428,168 L398,228 L344,202
-    L344,560 L136,560 L136,202
-    L82,228 L52,168 Z`;
-}
-
-export function hoodShape(mode, mainColor) {
-  // 'front': hood hangs behind the shoulders, drawstrings visible.
-  // 'back':  hood bunched on top of the shoulders.
-  if (mode === "front") {
-    return `
-      <path d="M186,64 C186,24 218,6 240,6 C262,6 294,24 294,64 L294,96 L186,96 Z"
-            fill="${shade(mainColor, -0.18)}"/>
-      <line x1="222" y1="112" x2="216" y2="156" stroke="${shade(mainColor, -0.3)}" stroke-width="5" stroke-linecap="round"/>
-      <line x1="258" y1="112" x2="264" y2="156" stroke="${shade(mainColor, -0.3)}" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="216" cy="158" r="4" fill="${shade(mainColor, -0.4)}"/>
-      <circle cx="264" cy="158" r="4" fill="${shade(mainColor, -0.4)}"/>`;
-  }
-  return `
-    <path d="M158,96 C158,30 196,4 240,4 C284,4 322,30 322,96 C322,118 300,128 240,128 C180,128 158,118 158,96 Z"
-          fill="${mainColor}" stroke="${shade(mainColor, -0.25)}" stroke-width="3"/>
-    <path d="M240,10 C270,10 300,32 300,80" fill="none" stroke="${shade(mainColor, 0.25)}" stroke-width="4" opacity="0.5" stroke-linecap="round"/>`;
 }

@@ -33,9 +33,9 @@ export default function studio({ stage, root, ui }) {
   const $$ = (sel) => root.querySelectorAll(sel);
 
   const state = {
-    garment: "tee",
-    view: "front",
-    mainColor: MAIN_COLORS[2].hex, // Blood Red reads clearly against the dark room
+    garment: /** @type {"tee" | "hoodie"} */ ("tee"),
+    view: /** @type {"front" | "back"} */ ("front"),
+    mainColor: MAIN_COLORS[2].hex, // Blood Red: the brand colour, and it reads well against the light room
     trimColor: TRIM_COLORS[0].hex,
     size: "M",
     qty: 1,
@@ -45,7 +45,8 @@ export default function studio({ stage, root, ui }) {
 
   // Prefill from the address: customize.html?garment=hoodie&color=Blackout
   const params = new URLSearchParams(location.search);
-  if (params.get("garment") in BASE_PRICE) state.garment = params.get("garment");
+  const wantedGarment = params.get("garment");
+  if (wantedGarment === "tee" || wantedGarment === "hoodie") state.garment = wantedGarment;
   const wanted = (params.get("color") || "").toLowerCase();
   const match = MAIN_COLORS.find((c) => c.name.toLowerCase() === wanted);
   if (match) state.mainColor = match.hex;
@@ -94,9 +95,9 @@ export default function studio({ stage, root, ui }) {
       const img = el.querySelector("[data-zone-drag]");
       if (img) bindDrag(img, key); else el.addEventListener("click", () => openEditor(key));
     });
-    host.querySelectorAll("[data-zone-edit]").forEach((b) => b.addEventListener("click", () => openEditor(b.dataset.zoneEdit)));
-    host.querySelectorAll("[data-zone-remove]").forEach((b) => b.addEventListener("click", () => {
-      const key = b.dataset.zoneRemove;
+    host.querySelectorAll("[data-zone-edit]").forEach((btn) => btn.addEventListener("click", () => openEditor(btn.dataset.zoneEdit)));
+    host.querySelectorAll("[data-zone-remove]").forEach((btn) => btn.addEventListener("click", () => {
+      const key = btn.dataset.zoneRemove;
       state.zones[key] = null;
       refresh();
       ui.toast(`Removed the ${zoneLabel(key)} design.`);
@@ -169,7 +170,7 @@ export default function studio({ stage, root, ui }) {
   function refresh() { renderStage(); renderLayers(); renderPrice(); }
 
   function setView(view) {
-    state.view = view;
+    state.view = view === "back" ? "back" : "front";
     $$("[data-view-tab]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.viewTab === view)));
     renderStage();
   }
@@ -258,7 +259,7 @@ export default function studio({ stage, root, ui }) {
   $$("[data-garment]").forEach((b) => {
     b.setAttribute("aria-pressed", String(b.dataset.garment === state.garment));
     b.addEventListener("click", () => {
-      state.garment = b.dataset.garment;
+      state.garment = b.dataset.garment === "hoodie" ? "hoodie" : "tee";
       state.zones = {};
       $$("[data-garment]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
       refresh();

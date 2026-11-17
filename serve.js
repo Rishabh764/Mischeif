@@ -29,7 +29,7 @@ function send(res, status, file) {
 
 http.createServer((req, res) => {
   let rel;
-  try { rel = decodeURIComponent(new URL(req.url, "http://localhost").pathname); } catch (e) { res.writeHead(400); res.end(); return; }
+  try { rel = decodeURIComponent(new URL(req.url, "http://localhost").pathname); } catch { res.writeHead(400); res.end(); return; }
   if (rel.endsWith("/")) rel += "index.html";
   const file = path.join(ROOT, path.normalize(rel));
   // Never serve anything outside the project folder, or its git data.

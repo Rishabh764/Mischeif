@@ -5,7 +5,7 @@
 
 import { cart } from "./cart.js";
 import { getProduct, formatPrice } from "../data/products.js";
-import { pieceImage } from "../scene/standins.js";
+import { pieceImage } from "../data/products.js";
 import { garmentSVG, GARMENT_ZONES, VIEW_ZONES, zoneToPercent } from "../studio/garment-art.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -52,6 +52,7 @@ export function mount() {
 
   $("[data-menu-toggle]").addEventListener("click", () => toggleMenu());
   document.addEventListener("click", (e) => {
+    if (!(e.target instanceof Element)) return;
     if (e.target.closest("[data-bag-open]")) openBag();
     else if (e.target.closest("[data-bag-close]")) closeBag();
   });
@@ -181,7 +182,7 @@ function initCursor() {
   let x = -100, y = -100, cx = x, cy = y;
   window.addEventListener("pointermove", (e) => {
     x = e.clientX; y = e.clientY;
-    const hot = e.target.closest && e.target.closest("a, button, input, label, select, [data-hot]");
+    const hot = e.target instanceof Element && e.target.closest("a, button, input, label, select, [data-hot]");
     cursorEl.classList.toggle("is-hot", !!hot);
   }, { passive: true });
   document.addEventListener("pointerleave", () => cursorEl.classList.add("is-out"));

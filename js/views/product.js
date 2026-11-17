@@ -6,7 +6,7 @@
 
 import { getProduct, formatPrice } from "../data/products.js";
 import { cart } from "../core/cart.js";
-import { pieceImage } from "../scene/standins.js";
+import { pieceImage } from "../data/products.js";
 
 export default function product({ stage, root, products, go, ui }) {
   const id = new URLSearchParams(location.search).get("id");

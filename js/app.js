@@ -75,7 +75,7 @@ async function go(url, { push = true, force = false } = {}) {
 
 function bindLinks() {
   document.addEventListener("click", (e) => {
-    const a = e.target.closest("a[href]");
+    const a = /** @type {HTMLAnchorElement | null} */ (e.target instanceof Element ? e.target.closest("a[href]") : null);
     if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     if (a.target || a.hasAttribute("download")) return;
     const url = new URL(a.getAttribute("href"), location.href);
@@ -91,7 +91,7 @@ function bindPicking() {
   let downX = 0, downY = 0;
   window.addEventListener("pointerdown", (e) => { downX = e.clientX; downY = e.clientY; }, { passive: true });
   window.addEventListener("click", (e) => {
-    if (e.target.closest(UI_SELECTOR) || !current || !current.pick) return;
+    if ((e.target instanceof Element && e.target.closest(UI_SELECTOR)) || !current || !current.pick) return;
     if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) return; // that was a drag
     const actor = stage.pick(e.clientX, e.clientY);
     if (actor) current.pick(actor);

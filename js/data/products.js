@@ -3,23 +3,19 @@
    Order here is the order pieces hang in the showroom corridor.
 
    Photos: `images: { front, back }` are transparent cut-outs (WebP or PNG).
-   A piece without them falls back to a drawn stand-in. `turntable: [...]`
-   (12–24 frames, one full spin, starting at the front and turning so the front
-   swings toward the right of the picture) gives the hero piece a true spin.
+   The 3D models are built from these photos plus the depth maps in
+   assets/depth/ (see js/scene/garment3d.js).
 
    The descriptions and details below describe what the photos show. Fabric
    names are placeholders until there are real garments.
    ========================================================================== */
 
 const piece = (id) => ({ front: `assets/pieces/${id}-front.webp`, back: `assets/pieces/${id}-back.webp` });
-// 12 frames, one every 30°, all scaled to the same garment height.
-const turn = (id) => Array.from({ length: 12 }, (_, i) => `assets/pieces/${id}-turn-${String(i * 30).padStart(3, "0")}.webp`);
 
 export const PRODUCTS = [
   {
     id: "riot-hoodie",
     images: piece("riot-hoodie"),
-    turntable: turn("riot-hoodie"),
     name: "Riot Hoodie",
     category: "Hoodies",
     kind: "hoodie",
@@ -157,3 +153,8 @@ export const getProduct = (id) => PRODUCTS.find((p) => p.id === id);
 
 /** Demo prices are whole euros, written "€79". */
 export const formatPrice = (n) => "€" + (Number.isInteger(n) ? n : n.toFixed(2));
+
+/** A piece's photo for one side (the back falls back to the front). */
+export function pieceImage(product, view = "front") {
+  return product.images[view] || product.images.front;
+}

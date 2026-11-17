@@ -80,7 +80,7 @@ function detail(px, GX, GY, mirror, inside) {
 }
 
 export function buildGarmentGeometry(frontDepth, backDepth, opts = {}) {
-  const o = { GX: 160, GY: 200, width: 1.28, height: 1.6, thickness: 0.17, relief: 0.08, ...opts };
+  const o = { GX: 160, GY: 200, width: 1.28, height: 1.6, thickness: 0.17, relief: 0.08, bodyCells: null, fadeCells: null, uvInset: 5, ...opts };
   const { GX, GY } = o;
   const body = o.bodyCells ?? GX * 0.2, fade = o.fadeCells ?? GX * 0.06;
   const fpx = pixels(frontDepth, GX, GY), bpx = pixels(backDepth, GX, GY);
@@ -122,7 +122,7 @@ export function buildGarmentGeometry(frontDepth, backDepth, opts = {}) {
       // The steep sides take their colour from a little inside the outline, not
       // from the photo's soft edge pixels (which would smear into grey streaks).
       let ux = gx, uy = gy;
-      const inset = o.uvInset ?? 5;
+      const inset = o.uvInset;
       if (s < inset) {
         const ddx = (sd[i + 1] - sd[i - 1]) / 2, ddy = (sd[i + GX] - sd[i - GX]) / 2, gl = Math.hypot(ddx, ddy) || 1;
         const k = inset - Math.max(s, 0);
@@ -146,6 +146,18 @@ export function buildGarmentGeometry(frontDepth, backDepth, opts = {}) {
   g.addGroup(0, idx[0].length, 0);
   g.addGroup(idx[0].length, idx[1].length, 1);
   g.computeVertexNormals();
+
+  // Height of the garment's top edge in each column, so a hanger can be fitted
+  // under the real shoulder line (see garment.js). topAt(x) takes and returns
+  // the piece's own units; columns with no fabric return -Infinity.
+  const tops = new Float32Array(GX).fill(-Infinity);
+  for (let x = 0; x < GX; x++) for (let y = 0; y < GY; y++) {
+    if (sd[y * GX + x] > 0) { tops[x] = toY(y); break; }
+  }
+  g.userData.topAt = (X) => {
+    const gx = Math.round((X / o.width + 0.5) * (GX - 1));
+    return gx >= 0 && gx < GX ? tops[gx] : -Infinity;
+  };
   return g;
 }
 

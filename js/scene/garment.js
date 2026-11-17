@@ -11,12 +11,12 @@
 
 import * as THREE from "../lib/three.module.min.js";
 import { buildGarmentGeometry, fabricTexture } from "./garment3d.js";
-import { pieceImage } from "./standins.js";
+import { pieceImage } from "../data/products.js";
 
 export const PIECE_H = 1.6;
-export const PIECE_W = PIECE_H * 0.8;
+const PIECE_W = PIECE_H * 0.8;
 export const FLOOR_GAP = 1.75;          // hem to floor (about 0.9 m: garments hang at shop height)
-export const SHOULDER_Y = 0.55;          // where the hanger's shoulders sit, in the piece's own space
+const SHOULDER_Y = 0.55;          // where the hanger's shoulders sit, in the piece's own space
 export const HOOK_Y = 0.795;             // top of the hanger hook = rail height
 const ACCESSORY = new Set(["cap", "beanie"]);
 
@@ -45,7 +45,7 @@ function hangers() {
   const make = (type) => {
     const g = new THREE.Group();
     const mat = metal.clone(); // each hanger fades with its own garment
-    const add = (geo, x, y, rx = 0, rz = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, 0); m.rotation.set(rx, 0, rz); m.castShadow = true; g.add(m); return m; };
+    const add = (geo, x, y, rx = 0, rz = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, 0); m.rotation.set(rx, 0, rz); g.add(m); return m; };
     if (type === "shoulder") add(arc, 0, SHOULDER_Y);
     else { add(bar, 0, SHOULDER_Y + 0.02, 0, Math.PI / 2); add(clip, -0.26, SHOULDER_Y - 0.02); add(clip, 0.26, SHOULDER_Y - 0.02); }
     add(neck, 0, SHOULDER_Y + 0.04 + 0.085);
@@ -77,17 +77,25 @@ export async function createActor(product, renderer, shared) {
   });
   const frontMat = material(front), backMat = material(back || front);
   const mesh = new THREE.Mesh(geometry, [frontMat, backMat]);
-  mesh.castShadow = true; mesh.receiveShadow = true;
   mesh.userData.product = product;
 
   // Hang it: shoulders (or waistband) on the hanger; accessories centred on their own base.
   const accessory = ACCESSORY.has(product.kind);
   const hangerType = accessory ? null : product.kind === "cargo" ? "clip" : "shoulder";
   if (hangerType === "shoulder") {
-    const shoulderTop = product.kind === "hoodie" ? box.max.y - 0.3 : box.max.y - 0.05;
-    mesh.position.y = SHOULDER_Y - shoulderTop;
+    // Fit the hanger to this garment's real shoulder line: sample the outline
+    // along the hanger's arms and raise the garment until the arms sit just
+    // under the fabric everywhere (so the piece hangs ON the hanger, not below it).
+    const topAt = geometry.userData.topAt;
+    const arcY = (x) => (x < 0.2 ? 0.04 - 0.3 * x : -0.02 - 0.5 * (x - 0.2)); // hanger arm height at |x|
+    let lift = -Infinity;
+    if (topAt) for (let x = 0.14; x <= 0.37; x += 0.01) for (const side of [-1, 1]) {
+      const top = topAt(side * x);
+      if (Number.isFinite(top)) lift = Math.max(lift, SHOULDER_Y + arcY(x) + 0.045 - top);
+    }
+    mesh.position.y = Number.isFinite(lift) ? lift : SHOULDER_Y - (box.max.y - 0.05);
   } else if (hangerType === "clip") {
-    mesh.position.y = SHOULDER_Y - 0.03 - box.max.y;
+    mesh.position.y = SHOULDER_Y - 0.012 - box.max.y; // waistband held inside the clips
   }
   const group = new THREE.Group();
   group.add(mesh);
@@ -100,7 +108,7 @@ export async function createActor(product, renderer, shared) {
   let stand = null;
   if (accessory) {
     stand = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), shared.oakMaterial);
-    stand.castShadow = stand.receiveShadow = true; stand.visible = false;
+    stand.visible = false;
     group.add(stand);
   }
   const cableMat = hanger ? hanger.children[0].material : new THREE.MeshStandardMaterial({ color: 0x24221f, roughness: 0.4, metalness: 0.8, transparent: true });
@@ -118,7 +126,7 @@ export async function createActor(product, renderer, shared) {
   const materials = [frontMat, backMat];
   // stand / cable: whether the plinth or ceiling cable shows (set by the views, not smoothed).
   // cableTo: world height the cable runs up to (the ceiling, or the Shop's ring rail).
-  const zero = () => ({ x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1, o: 0, glow: 1, stand: 0, cable: 0, cableTo: null });
+  const zero = () => ({ x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1, o: 0, stand: 0, cable: 0, cableTo: null });
   return {
     product, group, mesh, materials, hanger, floorShadow, floorMat, accessory, stand, cable,
     /** Lowest point / middle of the piece in its own space (for plinths). */

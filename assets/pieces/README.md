@@ -1,6 +1,6 @@
 # Piece photos
 
-The showroom uses a transparent cut-out PNG for each side of each piece. Any piece without a photo shows its drawn stand-in instead.
+The showroom uses a transparent cut-out for each side of each piece. Each piece's 3D model is built from these two photos plus its depth maps in `assets/depth/` (see the README there).
 
 ## Status
 
@@ -8,18 +8,16 @@ All ten pieces have a front and a back photo (20 files, about 0.8 MB in total). 
 
 The Design Studio's blank tee and hoodie live in `assets/studio/` (front and back of each). They are grey photos turned into greyscale shading maps, which the Studio tints live with the chosen garment and trim colours; see `js/studio/garment-art.js`.
 
-The hero piece (Riot Hoodie) also has a 12-frame turntable, `riot-hoodie-turn-000.webp` to `riot-hoodie-turn-330.webp`, one frame every 30°. The 0° and 180° frames are the front and back photos; the other ten were generated in Canva with the front and back as references. Unlike the other cut-outs, the turntable frames are all scaled to the same garment height, so the hoodie doesn't grow and shrink as the narrow side views come round.
 
 ## Adding a photo
 
 1. Generate or shoot the image on a **flat green screen background** (or pure white for dark garments). Portrait, 4:5, the whole garment visible with margin around it.
 2. Cut out the background and frame it on a 960×1200 transparent card. The existing files were made this way.
 3. Save it here as `<piece-id>-front.webp` or `<piece-id>-back.webp` (PNG also works) (ids are in `js/data/products.js`).
-4. In `js/data/products.js`, add the file to that piece: `images: { front: "assets/pieces/<id>-front.webp", back: "assets/pieces/<id>-back.webp" }`.
+4. Make the matching depth maps (`assets/depth/`), or the 3D shape won't fit the new photo.
 
 A piece with a front photo but no back photo shows the front on both sides.
 
-For a true hero spin, add `turntable: [...]` to a piece with 12–24 frames of one full rotation, starting at the front and turning so the front swings toward the right of the picture. Frame every angle at the same garment height.
 
 ## Prompts
 

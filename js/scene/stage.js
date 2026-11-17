@@ -9,11 +9,11 @@
 
 import * as THREE from "../lib/three.module.min.js";
 import { RoomEnvironment } from "../lib/RoomEnvironment.js";
-import { createActor, PIECE_H } from "./garment.js";
+import { createActor } from "./garment.js";
 import { buildShowroom, FLOOR_Y, CEIL_Y, GAP, SLOT0_Z, RING_Z, PLINTH_TOP } from "./showroom.js";
 import { HOOK_Y } from "./garment.js";
 
-export { FLOOR_Y, CEIL_Y, GAP, SLOT0_Z, RING_Z, PLINTH_TOP, PIECE_H, HOOK_Y };
+export { FLOOR_Y, GAP, SLOT0_Z, RING_Z, HOOK_Y };
 export const ACC_SCALE = 0.42; // cap and beanie at true size
 const BG = 0xf1ebe2; // warm plaster, also the fog colour
 
@@ -43,8 +43,8 @@ function pickQuality() {
   const small = Math.min(window.innerWidth, window.innerHeight) < 700;
   const light = coarse || small;
   return light
-    ? { light: true, pixelRatio: 1.5, shadows: true, shadowSize: 1024, gridX: 110, spotIntensity: 55 }
-    : { light: false, pixelRatio: 2, shadows: true, shadowSize: 2048, gridX: 160, spotIntensity: 55 };
+    ? { light: true, pixelRatio: 2, minPixelRatio: 1.5, gridX: 140, spotIntensity: 55 }
+    : { light: false, pixelRatio: 2, minPixelRatio: 1, gridX: 160, spotIntensity: 55 };
 }
 
 export class Stage {
@@ -52,21 +52,33 @@ export class Stage {
     this.ok = true;
     this.canvas = canvas;
     this.quality = pickQuality();
-    const r = (this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" }));
+    // Edge smoothing only where pixels are big enough to need it: on screens with
+    // 150%+ scaling it is invisible but costs ~15% of the graphics chip's work.
+    const r = (this.renderer = new THREE.WebGLRenderer({ canvas, antialias: (window.devicePixelRatio || 1) < 1.5, powerPreference: "high-performance" }));
     r.setClearColor(BG, 1);
     r.toneMapping = THREE.ACESFilmicToneMapping;
     r.toneMappingExposure = 1.12;
-    r.shadowMap.enabled = this.quality.shadows;
-    r.shadowMap.type = THREE.PCFSoftShadowMap;
+    r.autoClear = false; // two layers per frame, see frame()
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(BG);
-    this.scene.fog = new THREE.Fog(BG, 30, 90);
+    this.fog = new THREE.Fog(BG, 30, 90);
+    this.scene.fog = this.fog;
     // Soft, realistic reflections and fill light from a generic room environment.
     const pmrem = new THREE.PMREMGenerator(r);
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    this.scene.environmentIntensity = 0.5;
-    this.scene.add(new THREE.HemisphereLight(0xfff8ef, 0xe0cfb8, 0.62));
+    this.scene.environmentIntensity = 0.62;
+    // The room is lit by soft fill light only (its spotlight pools are painted on,
+    // see showroom.js): walls and floor cover most of the screen, and real
+    // spotlights on every one of those pixels were what overloaded the GPU.
+    this.scene.add(new THREE.HemisphereLight(0xfff8ef, 0xe0cfb8, 0.95));
+    // The garments get their own layer with the real spotlights, so light still
+    // falls properly on the cloth.
+    this.pieces = new THREE.Scene();
+    this.pieces.fog = this.fog;
+    this.pieces.environment = this.scene.environment;
+    this.pieces.environmentIntensity = 0.5;
+    this.pieces.add(new THREE.HemisphereLight(0xfff8ef, 0xe0cfb8, 0.62));
 
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 140);
     this.cam = {
@@ -90,11 +102,16 @@ export class Stage {
     this.slotX = 1.45;
     this.ringR = 3.1;
     this.raycaster = new THREE.Raycaster();
+    this.adapt = null; // automatic-quality state (see adaptQuality)
+    this.needsRender = true; // draw on the next frame even if nothing seems to move
+    this.idle = 0;          // seconds since anything last changed
+    this.swayAmt = 1;       // garments' gentle sway; settles to 0 when the scene is still
+    this.drewLast = false;  // whether the previous frame was drawn (for adaptQuality)
 
     this.shared = {
       quality: this.quality,
       oakMaterial: (() => {
-        const t = new THREE.TextureLoader().load("assets/room/floor-color.jpg");
+        const t = new THREE.TextureLoader().load("assets/room/floor-color.jpg", () => this.requestRender());
         t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(0.35, 0.35);
         return new THREE.MeshStandardMaterial({ map: t, color: 0xf2e6d6, roughness: 0.55, transparent: true });
       })(),
@@ -148,7 +165,7 @@ export class Stage {
       onProgress && onProgress(++done / products.length);
       return a;
     }));
-    this.actors.forEach((a, i) => { this.scene.add(a.group); this.showroom.setAccessory(i, a.accessory); });
+    this.actors.forEach((a, i) => { this.pieces.add(a.group); this.showroom.setAccessory(i, a.accessory); });
     this.layout();
   }
 
@@ -164,7 +181,8 @@ export class Stage {
 
   resize() {
     const w = this.canvas.clientWidth || window.innerWidth, h = this.canvas.clientHeight || window.innerHeight;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.quality.pixelRatio));
+    // Keep whatever resolution automatic quality settled on (resizes happen often on phones).
+    this.renderer.setPixelRatio(this.adapt && this.adapt.ratio ? this.adapt.ratio : this.pixelRatioRange().max);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     const portrait = w / h < 0.9;
@@ -172,12 +190,17 @@ export class Stage {
     this.camera.updateProjectionMatrix();
     this.portrait = portrait;
     this.layout();
+    this.needsRender = true;
   }
 
   /* ---------- Views ------------------------------------------------------ */
 
+  /** Ask for a fresh frame (a texture finished loading, the screen changed...). */
+  requestRender() { this.needsRender = true; }
+
   setView(view) {
     this.view = view;
+    this.needsRender = true;
     this.transition = 0;
     this.scrollY = window.scrollY;
     this.heroLight = 0;
@@ -218,30 +241,40 @@ export class Stage {
     return this.envNow[name];
   }
 
-  /** Automatic quality: if the device can't hold a smooth frame rate, draw at a
-   *  lower resolution, one step at a time (sharpness is the cheapest thing to give up). */
+  /** Automatic quality: keeps the room smooth by trading sharpness, never the other way.
+   *  - ignores the first 4 s (loading, shaders warming up) and page changes
+   *  - steps the drawing resolution down only after two slow readings in a row,
+   *    and back up after four fast ones
+   *  - never below quality.minPixelRatio (phones stay sharp) */
   adaptQuality(frameMs) {
-    const a = (this.adapt ||= { sum: 0, n: 0, steps: [2, 1.5, 1.25, 1, 0.85, 0.75], i: -1, settle: 0 });
-    if (a.i < 0) a.i = Math.max(0, a.steps.findIndex((r) => r <= this.renderer.getPixelRatio() + 0.01));
-    if (this.transition < 1 || document.hidden) return; // ignore page changes and hidden tabs
+    const a = (this.adapt ||= { sum: 0, n: 0, slow: 0, fast: 0, warm: 0, ratio: 0 });
+    if (document.hidden) return;
+    a.warm += frameMs;
+    if (a.warm < 4000 || this.transition < 1) { a.sum = 0; a.n = 0; return; }
     a.sum += frameMs; a.n++;
-    if (a.n < 40) return;                                // judge ~40 frames at a time
-    const avg = a.sum / a.n; a.sum = 0; a.n = 0;
-    if (a.settle > 0) { a.settle--; return; }
-    if (avg > 1000 / 45 && a.i < a.steps.length - 1) {  // slower than ~45 fps: step down
-      a.i++;
-      this.renderer.setPixelRatio(a.steps[a.i]);
-      this.renderer.setSize(this.canvas.clientWidth || window.innerWidth, this.canvas.clientHeight || window.innerHeight, false);
-      a.settle = 0;
-    }
+    if (a.n < 60) return;
+    const fps = 1000 / (a.sum / a.n); a.sum = 0; a.n = 0;
+    if (fps < 45) { a.slow++; a.fast = 0; } else if (fps > 57) { a.fast++; a.slow = 0; } else { a.slow = 0; a.fast = 0; }
+    const { max, min } = this.pixelRatioRange(), cur = this.renderer.getPixelRatio();
+    let next = cur;
+    if (a.slow >= 2 && cur > min) next = Math.max(min, cur - 0.25);
+    else if (a.fast >= 4 && cur < max) next = Math.min(max, cur + 0.25);
+    if (next === cur) return;
+    a.slow = 0; a.fast = 0; a.ratio = next;
+    this.renderer.setPixelRatio(next);
+    this.renderer.setSize(this.canvas.clientWidth || window.innerWidth, this.canvas.clientHeight || window.innerHeight, false);
   }
 
+  /** Sharpest and softest drawing resolution allowed on this device. */
+  pixelRatioRange() {
+    const max = Math.min(window.devicePixelRatio || 1, this.quality.pixelRatio);
+    return { max, min: Math.min(max, this.quality.minPixelRatio) };
+  }
   frame(t) {
     const frameMs = t - (this.last || t);
     const dt = Math.min(0.05, frameMs / 1000);
     this.last = t;
     this.time += dt;
-    if (frameMs > 0) this.adaptQuality(frameMs);
 
     // Smoothed scroll and pointer.
     const sy = window.scrollY;
@@ -253,6 +286,13 @@ export class Stage {
 
     if (this.view && this.view.update) this.view.update(dt);
 
+    // Is anything actually changing? When nothing is, the stage stops drawing:
+    // the same picture stays on screen and the graphics chip rests.
+    let moving = this.needsRender || this.transition < 1 || Math.abs(sy - this.scrollY) > 0.05
+      || Math.abs(this.pointer.x - this.pointer.sx) > 2e-4 || Math.abs(this.pointer.y - this.pointer.sy) > 2e-4
+      || this.cam.pos.distanceToSquared(this.cam.tPos) > 1e-8 || this.cam.look.distanceToSquared(this.cam.tLook) > 1e-8
+      || Math.abs(this.fog.near - this.fogTarget[0]) > 0.01 || Math.abs(this.fog.far - this.fogTarget[1]) > 0.01;
+
     // Glide slowly right after a page change, then follow tightly.
     this.transition = Math.min(1, this.transition + dt / 1.5);
     const k = lerp(2.3, 8.5, smooth(this.transition));
@@ -260,6 +300,9 @@ export class Stage {
 
     for (const a of this.actors) {
       const c = a.cur, g = a.tgt;
+      const delta = Math.abs(g.x - c.x) + Math.abs(g.y - c.y) + Math.abs(g.z - c.z) + Math.abs(g.rx - c.rx) + Math.abs(g.ry - c.ry)
+        + Math.abs(g.rz - c.rz) + Math.abs(g.s - c.s) + Math.abs(g.o - c.o) + Math.abs(a.hoverTgt - a.hover);
+      if (delta > 1e-4) moving = true;
       c.x += (g.x - c.x) * f; c.y += (g.y - c.y) * f; c.z += (g.z - c.z) * f;
       c.rx += (g.rx - c.rx) * f; c.ry += (g.ry - c.ry) * f; c.rz += (g.rz - c.rz) * f;
       c.s += (g.s - c.s) * f; c.o += (g.o - c.o) * f;
@@ -268,7 +311,7 @@ export class Stage {
       a.group.visible = visible;
       if (!visible) continue;
       // Hanging pieces sway very slightly; pieces on plinths stay still.
-      const sway = a.accessory ? 0 : Math.sin(this.time * 0.55 + a.product.index * 1.9) * 0.012;
+      const sway = a.accessory ? 0 : Math.sin(this.time * 0.55 + a.product.index * 1.9) * 0.012 * this.swayAmt;
       a.group.position.set(c.x, c.y, c.z);
       a.group.rotation.set(c.rx, c.ry + sway, c.rz);
       a.group.scale.setScalar(c.s * (1 + a.hover * 0.025));
@@ -302,6 +345,8 @@ export class Stage {
       sr.heroSpot.target.position.set(h.x, h.y - 0.1, h.z);
       sr.heroSpot.position.set(h.x * 0.6, sr.heroFixture.position.y, h.z + 2.6);
       sr.heroSpot.intensity = this.quality.spotIntensity * 1.15 * this.heroLight;
+      sr.heroPool.position.set(h.x * 1.25, FLOOR_Y + 0.013, h.z - 1.1);
+      sr.heroPool.material.opacity = 0.4 * this.heroLight;
       // The banner lowers with the headline and lifts away as you walk in.
       const drop = smooth(this.heroText);
       sr.banner.position.y = lerp(9.3, 3.6, drop); // 9.3: fully retracted above the ceiling
@@ -314,21 +359,35 @@ export class Stage {
     this.camera.position.set(cam.pos.x + this.pointer.sx * 0.14, cam.pos.y + this.pointer.sy * 0.07, cam.pos.z);
     this.camera.lookAt(cam.look);
 
-    const fog = this.scene.fog;
+    const fog = this.fog;
     fog.near += (this.fogTarget[0] - fog.near) * 0.06;
     fog.far += (this.fogTarget[1] - fog.far) * 0.06;
 
+    const before = { ...this.envNow };
     const env = { corridor: this.envFade("corridor"), ring: this.envFade("ring") };
-    if (sr) sr.update(env);
+    if (env.corridor !== before.corridor || env.ring !== before.ring) moving = true;
+    if (sr) sr.update(env, this.camera.position);
 
-    this.renderer.render(this.scene, this.camera);
+    // The sway eases out half a second after everything else is still, and back in on any change.
+    this.idle = moving ? 0 : this.idle + dt;
+    this.swayAmt += ((this.idle < 0.5 ? 1 : 0) - this.swayAmt) * (1 - Math.exp(-dt * 2.5));
+    if (!moving && this.swayAmt < 0.002) { this.drewLast = false; return; } // nothing would change: skip drawing
+
+    // Judge smoothness only from back-to-back drawn frames (idle frames would look "fast").
+    if (this.drewLast && frameMs > 0) this.adaptQuality(frameMs);
+    this.drewLast = true;
+
+    this.needsRender = false;
+    this.renderer.clear();
+    this.renderer.render(this.scene, this.camera);  // the room
+    this.renderer.render(this.pieces, this.camera); // the garments, on top (depth kept)
   }
 }
 
 /** Stand-in used when the device cannot run WebGL: same surface, does nothing. */
 export function createNullStage(products) {
   const noop = { set() {} };
-  const blank = () => ({ x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1, o: 0, glow: 1 });
+  const blank = () => ({ x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1, o: 0 });
   return {
     ok: false, portrait: window.innerWidth / window.innerHeight < 0.9, slotX: 1.45, ringR: 3.1,
     actors: products.map((p) => ({ product: p, cur: blank(), tgt: blank(), setSpin: (a) => a, resetSpin() {}, accessory: p.kind === "cap" || p.kind === "beanie", bottom: -0.4 })),
