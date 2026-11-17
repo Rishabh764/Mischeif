@@ -1,16 +1,18 @@
 /* ==========================================================================
-   MISCHIEF — Home: the corridor.
-   Scroll = walk forward. The hero piece turns in front of the headline wall,
-   then takes its place as piece 01 and the camera travels the hall, passing
-   one piece at a time on alternating sides.
+   SLANG STUDIO — Home: walking into the store.
+   You arrive in the entrance hall, close to piece 01 hanging under its light
+   in front of the "Made for Trouble" banner. Scrolling turns it once and sends
+   it back into its place at the head of the aisle while the banner lifts
+   away; then you walk the aisle, one piece at a time on alternating sides.
    ========================================================================== */
 
-import { GAP, smooth, lerp } from "../scene/stage.js";
+import { smooth, lerp, SLOT0_Z, GAP } from "../scene/stage.js";
 import { formatPrice } from "../data/products.js";
 
-const HERO = 1.3;  // scroll "segments" spent on the hero turn
+const HERO = 1.3;  // scroll "segments" spent on the hero
 const TAIL = 0.75; // walk-out distance after the last piece
 const SEG = 92;    // viewport-heights of scroll per segment
+const EYE = 0.55;  // camera height: about 1.6 m
 
 export default function home({ stage, root, products, go, ui }) {
   const n = products.length;
@@ -48,40 +50,42 @@ export default function home({ stage, root, products, go, ui }) {
     const heroT = smooth(heroLin);
     const travel = Math.min(Math.max(U - HERO, 0), n - 1 + TAIL);
     const portrait = stage.portrait;
-    const viewD = portrait ? 3.9 : 4.0;
-    const sx = stage.slotX;
-    const camZ = lerp(portrait ? 5.6 : 5.4, viewD, heroT) - travel * GAP;
+    const viewD = portrait ? 3.9 : 3.4;            // camera-to-piece distance in the aisle
+    const startZ = portrait ? 6.6 : 6.2;           // where you stand in the hall
+    const heroZ = startZ - (portrait ? 3.5 : 3.1); // piece 01, close up
+    const camZ = lerp(startZ, SLOT0_Z + viewD, heroT) - travel * GAP;
 
     stage.envTarget.corridor = 1;
     stage.envTarget.ring = 0;
-    stage.fogTarget = [4.5, 21];
-    stage.heroText = 1 - smooth(U / (HERO * 0.85));
+    stage.fogTarget = [30, 95];
+    stage.heroText = 1 - smooth(U / (HERO * 0.7));
+    stage.heroLight = 1 - smooth((heroLin - 0.75) / 0.25);
+    stage.feature = stage.actors[0] || null;
 
     stage.actors.forEach((a, i) => {
-      const side = i % 2 === 0 ? -1 : 1;
-      const t = a.tgt;
-      t.x = side * sx; t.y = 0; t.z = -i * GAP;
-      t.ry = -side * (portrait ? 0.16 : 0.42);
-      t.rx = 0; t.rz = 0; t.s = 1; t.glow = 1;
+      stage.park(a, i);
+      const p = stage.slot(i), t = a.tgt;
       if (i === 0) {
-        // Hero: centre stage, one full turn, then into its slot.
+        // Hero: close up in the hall, one full turn, then back into its place.
         const spin = a.setSpin(heroLin * Math.PI * 2);
-        t.x = lerp(0, t.x, heroT);
-        t.y = lerp(portrait ? 0.1 : 0.02, 0, heroT);
-        t.ry = t.ry * heroT + spin;
-        t.s = lerp(portrait ? 1.08 : 1.28, 1, heroT);
-        t.glow = lerp(1.6, 1, heroT);
+        t.x = lerp(0, p.x, heroT);
+        t.z = lerp(heroZ, p.z, heroT);
+        t.y = lerp(-0.08, t.y, heroT);
+        t.ry = p.ry * heroT + spin;
+        t.cable = heroT < 0.97 ? 1 : 0; // hangs from a ceiling cable until it reaches its rail
       }
       const ahead = camZ - t.z; // how far in front of the camera the piece hangs
-      t.o = ahead < 0.5 ? 0 : smooth((ahead - 0.5) / 1.3);
+      t.o = ahead < 0.4 ? 0 : smooth((ahead - 0.4) / 1.2);
     });
 
-    // Lean toward whichever side the nearest piece hangs on.
+    // Look toward whichever side the nearest piece hangs on; in the hall, at the hero.
     const i0 = Math.floor(travel), frac = travel - i0;
     const sideOf = (i) => (Math.min(i, n - 1) % 2 === 0 ? -1 : 1);
     const lean = lerp(sideOf(i0), sideOf(i0 + 1), smooth(frac)) * heroT;
-    stage.cam.tPos.set(-lean * (portrait ? 0.1 : 0.55), 0.04, camZ);
-    stage.cam.tLook.set(lean * sx * 0.78, 0, camZ - viewD);
+    const hero = stage.actors[0] ? stage.actors[0].tgt : { x: 0, z: heroZ };
+    stage.cam.tPos.set(-lean * (portrait ? 0.12 : 0.5), EYE, camZ);
+    const lookAisle = [lean * stage.slotX * 0.8, 0, camZ - viewD];
+    stage.cam.tLook.set(lerp(hero.x, lookAisle[0], heroT), lerp(-0.05, lookAisle[1], heroT), lerp(hero.z, lookAisle[2], heroT));
 
     // Interface
     heroCopy.style.opacity = String(1 - smooth(U / (HERO * 0.5)));

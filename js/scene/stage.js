@@ -1,17 +1,21 @@
 /* ==========================================================================
-   MISCHIEF — The showroom stage.
-   One persistent 3D scene behind every page. The ten pieces are "actors" that
-   live for the whole session: each view only says where every actor and the
-   camera should be, and the stage glides them there. That is what makes
-   moving between pages feel like flying through one room.
+   SLANG STUDIO — The showroom stage.
+   One persistent 3D scene behind every page: a real room (showroom.js) with
+   the ten pieces as real 3D garments (garment.js). The pieces are "actors"
+   that live for the whole session: each view only says where every actor and
+   the camera should be, and the stage glides them there. That is what makes
+   moving between pages feel like walking through one store.
    ========================================================================== */
 
 import * as THREE from "../lib/three.module.min.js";
-import { createActor, PIECE_H, FLOOR_GAP } from "./garment.js";
+import { RoomEnvironment } from "../lib/RoomEnvironment.js";
+import { createActor, PIECE_H } from "./garment.js";
+import { buildShowroom, FLOOR_Y, CEIL_Y, GAP, SLOT0_Z, RING_Z, PLINTH_TOP } from "./showroom.js";
+import { HOOK_Y } from "./garment.js";
 
-const BG = 0x070708;
-export const FLOOR_Y = -(PIECE_H / 2 + FLOOR_GAP);
-export const GAP = 6; // distance between pieces along the corridor
+export { FLOOR_Y, CEIL_Y, GAP, SLOT0_Z, RING_Z, PLINTH_TOP, PIECE_H, HOOK_Y };
+export const ACC_SCALE = 0.42; // cap and beanie at true size
+const BG = 0xf1ebe2; // warm plaster, also the fog colour
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 export const smooth = (t) => { t = clamp01(t); return t * t * (3 - 2 * t); };
@@ -33,25 +37,49 @@ function canvasTexture(w, h, draw) {
   return tex;
 }
 
+/** Lighter settings for phones and small screens. */
+function pickQuality() {
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+  const small = Math.min(window.innerWidth, window.innerHeight) < 700;
+  const light = coarse || small;
+  return light
+    ? { light: true, pixelRatio: 1.5, shadows: true, shadowSize: 1024, gridX: 110, spotIntensity: 55 }
+    : { light: false, pixelRatio: 2, shadows: true, shadowSize: 2048, gridX: 160, spotIntensity: 55 };
+}
+
 export class Stage {
   constructor(canvas) {
     this.ok = true;
     this.canvas = canvas;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-    this.renderer.setClearColor(BG, 1);
-    this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.Fog(BG, 5, 24);
-    this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 90);
+    this.quality = pickQuality();
+    const r = (this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" }));
+    r.setClearColor(BG, 1);
+    r.toneMapping = THREE.ACESFilmicToneMapping;
+    r.toneMappingExposure = 1.12;
+    r.shadowMap.enabled = this.quality.shadows;
+    r.shadowMap.type = THREE.PCFSoftShadowMap;
 
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(BG);
+    this.scene.fog = new THREE.Fog(BG, 30, 90);
+    // Soft, realistic reflections and fill light from a generic room environment.
+    const pmrem = new THREE.PMREMGenerator(r);
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environmentIntensity = 0.5;
+    this.scene.add(new THREE.HemisphereLight(0xfff8ef, 0xe0cfb8, 0.62));
+
+    this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 140);
     this.cam = {
-      pos: new THREE.Vector3(0, 0, 9), look: new THREE.Vector3(0, 0, 0),
-      tPos: new THREE.Vector3(0, 0, 6), tLook: new THREE.Vector3(0, 0, 0)
+      pos: new THREE.Vector3(0, 0.5, 9), look: new THREE.Vector3(0, 0, 0),
+      tPos: new THREE.Vector3(0, 0.5, 6), tLook: new THREE.Vector3(0, 0, 0)
     };
     this.pointer = { x: 0, y: 0, sx: 0, sy: 0 };
-    this.fogTarget = [5, 24];
+    this.fogTarget = [30, 90];
     this.envTarget = { corridor: 0, ring: 0 };
     this.envNow = { corridor: -1, ring: -1 };
-    this.heroText = 0; // 0..1 opacity of the big headline wall
+    this.heroText = 0;   // 0..1: how far the headline banner is lowered
+    this.heroLight = 0;  // 0..1: the hall spotlight that follows the featured piece
+    this.feature = null; // the piece that spotlight follows (Home: piece 01; product page: that piece)
     this.actors = [];
     this.view = null;
     this.time = 0;
@@ -64,15 +92,24 @@ export class Stage {
     this.raycaster = new THREE.Raycaster();
 
     this.shared = {
-      uTime: { value: 0 },
-      uLight: { value: new THREE.Vector2(0.5, 0.3) },
-      uFogColor: { value: new THREE.Color(BG) },
-      uFogNear: { value: 5 }, uFogFar: { value: 24 },
+      quality: this.quality,
+      oakMaterial: (() => {
+        const t = new THREE.TextureLoader().load("assets/room/floor-color.jpg");
+        t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(0.35, 0.35);
+        return new THREE.MeshStandardMaterial({ map: t, color: 0xf2e6d6, roughness: 0.55, transparent: true });
+      })(),
       glowTexture: canvasTexture(256, 256, (ctx, w, h) => {
         const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
-        g.addColorStop(0, "rgba(255,244,236,1)");
-        g.addColorStop(0.35, "rgba(255,120,100,0.42)");
-        g.addColorStop(1, "rgba(255,60,40,0)");
+        g.addColorStop(0, "rgba(255,244,230,1)");
+        g.addColorStop(0.4, "rgba(255,214,170,0.4)");
+        g.addColorStop(1, "rgba(255,200,150,0)");
+        ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+      }),
+      shadowTexture: canvasTexture(256, 256, (ctx, w, h) => {
+        const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+        g.addColorStop(0, "rgba(40,32,24,0.85)");
+        g.addColorStop(0.45, "rgba(40,32,24,0.35)");
+        g.addColorStop(1, "rgba(40,32,24,0)");
         ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
       })
     };
@@ -85,154 +122,53 @@ export class Stage {
     this.resize();
   }
 
+  /** Where piece i hangs in the aisle (alternating sides). */
+  slot(i) {
+    const side = i % 2 === 0 ? -1 : 1;
+    return { side, x: side * this.slotX, z: SLOT0_Z - i * GAP, ry: -side * (this.portrait ? 0.2 : 0.42) };
+  }
+
+  /** Put a piece back in its place in the aisle (on its rail, or its plinth). */
+  park(a, i, o = 1) {
+    const p = this.slot(i), t = a.tgt;
+    t.x = p.x; t.z = p.z; t.ry = p.ry; t.rx = 0; t.rz = 0;
+    t.s = a.accessory ? ACC_SCALE : 1;
+    t.y = a.accessory ? PLINTH_TOP - a.bottom * ACC_SCALE : 0;
+    t.o = o; t.stand = a.accessory ? 1 : 0; t.cable = 0; t.cableTo = null;
+  }
+
   /* ---------- Build ------------------------------------------------------ */
 
   async build(products, onProgress) {
     await document.fonts.load('900 120px "Big Shoulders Display"').catch(() => {});
-    this.buildEnvironment(products.length);
+    this.showroom = buildShowroom(this, products.length);
     let done = 0;
     this.actors = await Promise.all(products.map(async (p) => {
       const a = await createActor(p, this.renderer, this.shared);
       onProgress && onProgress(++done / products.length);
       return a;
     }));
-    this.actors.forEach((a) => this.scene.add(a.group));
+    this.actors.forEach((a, i) => { this.scene.add(a.group); this.showroom.setAccessory(i, a.accessory); });
     this.layout();
-  }
-
-  buildEnvironment(count) {
-    const { scene } = this;
-
-    // Floor: a faint grid that dissolves into the dark.
-    const grid = canvasTexture(256, 256, (ctx, w, h) => {
-      ctx.fillStyle = "#09090b"; ctx.fillRect(0, 0, w, h);
-      ctx.strokeStyle = "rgba(255,255,255,0.075)"; ctx.lineWidth = 2;
-      ctx.strokeRect(0, 0, w, h);
-    });
-    grid.wrapS = grid.wrapT = THREE.RepeatWrapping;
-    grid.repeat.set(160, 160);
-    grid.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), new THREE.MeshBasicMaterial({ map: grid }));
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.set(0, FLOOR_Y, -30);
-    scene.add(floor);
-
-    // Dust in the air.
-    const N = 700, pos = new Float32Array(N * 3);
-    for (let i = 0; i < N; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 12;
-      pos[i * 3 + 1] = FLOOR_Y + Math.random() * 4.4;
-      pos[i * 3 + 2] = 12 - Math.random() * 78;
-    }
-    const dustGeo = new THREE.BufferGeometry();
-    dustGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    this.dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xfff1ea, size: 0.022, transparent: true, opacity: 0.55, depthWrite: false }));
-    scene.add(this.dust);
-
-    /* Corridor dressing */
-    const corridor = (this.corridor = new THREE.Group());
-    const red = 0xff2d20;
-    this.bars = [];
-    this.numerals = [];
-    for (let i = 0; i < count; i++) {
-      const bar = new THREE.Mesh(new THREE.BoxGeometry(0.035, 3.3, 0.035), new THREE.MeshBasicMaterial({ color: red, transparent: true }));
-      const halo = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 4.6), new THREE.MeshBasicMaterial({
-        map: this.shared.glowTexture, color: red, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false
-      }));
-      bar.add(halo);
-      corridor.add(bar);
-      this.bars.push(bar);
-
-      const num = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), new THREE.MeshBasicMaterial({
-        map: canvasTexture(256, 256, (ctx, w, h) => {
-          ctx.font = '900 210px "Big Shoulders Display", Impact, sans-serif';
-          ctx.textAlign = "center"; ctx.textBaseline = "middle";
-          ctx.lineWidth = 3; ctx.strokeStyle = "rgba(240,237,231,0.95)";
-          ctx.strokeText(String(i + 1).padStart(2, "0"), w / 2, h / 2 + 10);
-        }),
-        transparent: true, opacity: 0.5, depthWrite: false
-      }));
-      num.rotation.x = -Math.PI / 2;
-      corridor.add(num);
-      this.numerals.push(num);
-    }
-    for (let z = 6; z > -(count * GAP + 6); z -= 3) {
-      const beam = new THREE.Mesh(new THREE.BoxGeometry(7, 0.012, 0.04), new THREE.MeshBasicMaterial({ color: 0x4a4a52, transparent: true }));
-      beam.position.set(0, 2.35, z);
-      corridor.add(beam);
-    }
-
-    // The headline wall behind the hero piece.
-    const headline = canvasTexture(2048, 1280, (ctx, w, h) => {
-      const fit = (text, target) => {
-        ctx.font = '900 400px "Big Shoulders Display", Impact, sans-serif';
-        return Math.floor(400 * (target / ctx.measureText(text).width));
-      };
-      ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-      let size = Math.min(fit("MADE FOR", w * 0.9), 560);
-      ctx.font = `900 ${size}px "Big Shoulders Display", Impact, sans-serif`;
-      ctx.lineWidth = 5; ctx.strokeStyle = "#efece6";
-      ctx.strokeText("MADE FOR", w / 2, h * 0.47);
-      size = Math.min(fit("TROUBLE", w * 0.94), 620);
-      ctx.font = `900 ${size}px "Big Shoulders Display", Impact, sans-serif`;
-      ctx.fillStyle = "#ff2d20";
-      ctx.fillText("TROUBLE", w / 2, h * 0.93);
-    });
-    headline.anisotropy = 4;
-    this.headline = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1), new THREE.MeshBasicMaterial({ map: headline, transparent: true, opacity: 0, depthWrite: false, fog: false }));
-    this.headline.position.set(0, 0.3, -2.4);
-    scene.add(this.headline);
-    scene.add(corridor);
-
-    /* Ring dressing: a lit circle on the floor under the carousel. */
-    const ring = (this.ring = new THREE.Group());
-    const circle = new THREE.Mesh(new THREE.RingGeometry(0.985, 1, 160), new THREE.MeshBasicMaterial({ color: red, transparent: true, side: THREE.DoubleSide }));
-    circle.rotation.x = -Math.PI / 2;
-    const pool = new THREE.Mesh(new THREE.CircleGeometry(1.6, 64), new THREE.MeshBasicMaterial({
-      map: this.shared.glowTexture, color: 0xff5a48, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false
-    }));
-    pool.rotation.x = -Math.PI / 2;
-    pool.position.y = 0.002;
-    ring.add(circle, pool);
-    ring.position.y = FLOOR_Y + 0.01;
-    scene.add(ring);
-
-    // Remember each dressing material's resting opacity so groups can fade.
-    [corridor, ring].forEach((g) => g.traverse((o) => { if (o.material) o.material.userData.base = o.material.opacity; }));
   }
 
   /** Positions that depend on the screen shape. */
   layout() {
     const p = this.portrait;
-    this.slotX = p ? 0.36 : 1.45;
+    this.slotX = p ? 0.62 : 1.45;
     this.ringR = p ? 2.25 : 3.1;
-    if (!this.bars) return;
-    this.bars.forEach((bar, i) => {
-      const side = i % 2 === 0 ? -1 : 1;
-      bar.position.set(side * (this.slotX + (p ? 0.95 : 1.3)), FLOOR_Y + 1.65, -i * GAP - 0.7);
-      this.numerals[i].position.set(-side * (p ? 0.5 : 0.9), FLOOR_Y + 0.012, -i * GAP + 1.5);
-      this.numerals[i].scale.setScalar(p ? 0.6 : 1);
-    });
-    // Headline wall: as big as fits between the floor and the top of the screen
-    // (seen from the hero camera position), never wider than the screen.
-    const dist = (p ? 5.6 : 5.4) - this.headline.position.z;
-    const halfH = Math.tan((this.camera.fov * Math.PI) / 360) * dist, halfW = halfH * this.camera.aspect;
-    const bottom = FLOOR_Y + 0.14, top = halfH * (p ? 0.8 : 0.84);
-    let h = top - bottom;
-    if (h * 1.6 > halfW * 1.84) h = (halfW * 1.84) / 1.6;
-    this.headline.scale.set(h, h, 1); // the plane is 1.6 wide by 1 tall
-    this.headline.position.y = p ? top - h / 2 : bottom + h / 2;
-    this.ring.scale.setScalar(this.ringR);
-    this.ring.position.z = -this.ringR;
+    if (!this.showroom) return;
+    this.showroom.layout();
+    this.actors.forEach((a, i) => this.showroom.setAccessory(i, a.accessory));
   }
 
   resize() {
     const w = this.canvas.clientWidth || window.innerWidth, h = this.canvas.clientHeight || window.innerHeight;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.quality.pixelRatio));
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     const portrait = w / h < 0.9;
-    this.camera.fov = portrait ? 58 : 42;
+    this.camera.fov = portrait ? 60 : 44;
     this.camera.updateProjectionMatrix();
     this.portrait = portrait;
     this.layout();
@@ -244,7 +180,9 @@ export class Stage {
     this.view = view;
     this.transition = 0;
     this.scrollY = window.scrollY;
-    this.actors.forEach((a) => a.resetSpin());
+    this.heroLight = 0;
+    this.feature = null;
+    this.actors.forEach((a) => { a.resetSpin(); a.tgt.stand = 0; a.tgt.cable = 0; a.tgt.cableTo = null; });
   }
 
   /** 0..1 scroll progress through a tall "scroll space" element. */
@@ -273,20 +211,37 @@ export class Stage {
     requestAnimationFrame(tick);
   }
 
-  fadeGroup(name, group) {
+  envFade(name) {
     const now = this.envNow[name], tgt = this.envTarget[name] || 0;
     const next = now < 0 ? tgt : now + (tgt - now) * 0.08;
-    if (Math.abs(next - now) < 0.0005) return;
-    this.envNow[name] = next;
-    group.visible = next > 0.01;
-    group.traverse((o) => { if (o.material) o.material.opacity = (o.material.userData.base ?? 1) * next; });
+    this.envNow[name] = Math.abs(next - tgt) < 0.0005 ? tgt : next;
+    return this.envNow[name];
+  }
+
+  /** Automatic quality: if the device can't hold a smooth frame rate, draw at a
+   *  lower resolution, one step at a time (sharpness is the cheapest thing to give up). */
+  adaptQuality(frameMs) {
+    const a = (this.adapt ||= { sum: 0, n: 0, steps: [2, 1.5, 1.25, 1, 0.85, 0.75], i: -1, settle: 0 });
+    if (a.i < 0) a.i = Math.max(0, a.steps.findIndex((r) => r <= this.renderer.getPixelRatio() + 0.01));
+    if (this.transition < 1 || document.hidden) return; // ignore page changes and hidden tabs
+    a.sum += frameMs; a.n++;
+    if (a.n < 40) return;                                // judge ~40 frames at a time
+    const avg = a.sum / a.n; a.sum = 0; a.n = 0;
+    if (a.settle > 0) { a.settle--; return; }
+    if (avg > 1000 / 45 && a.i < a.steps.length - 1) {  // slower than ~45 fps: step down
+      a.i++;
+      this.renderer.setPixelRatio(a.steps[a.i]);
+      this.renderer.setSize(this.canvas.clientWidth || window.innerWidth, this.canvas.clientHeight || window.innerHeight, false);
+      a.settle = 0;
+    }
   }
 
   frame(t) {
-    const dt = Math.min(0.05, (t - (this.last || t)) / 1000);
+    const frameMs = t - (this.last || t);
+    const dt = Math.min(0.05, frameMs / 1000);
     this.last = t;
     this.time += dt;
-    this.shared.uTime.value = this.time;
+    if (frameMs > 0) this.adaptQuality(frameMs);
 
     // Smoothed scroll and pointer.
     const sy = window.scrollY;
@@ -295,7 +250,6 @@ export class Stage {
     const pf = 1 - Math.exp(-dt * 5);
     this.pointer.sx += (this.pointer.x - this.pointer.sx) * pf;
     this.pointer.sy += (this.pointer.y - this.pointer.sy) * pf;
-    this.shared.uLight.value.set(0.55 + this.pointer.sx * 0.9, 0.3 + this.pointer.sy * 0.6);
 
     if (this.view && this.view.update) this.view.update(dt);
 
@@ -308,38 +262,64 @@ export class Stage {
       const c = a.cur, g = a.tgt;
       c.x += (g.x - c.x) * f; c.y += (g.y - c.y) * f; c.z += (g.z - c.z) * f;
       c.rx += (g.rx - c.rx) * f; c.ry += (g.ry - c.ry) * f; c.rz += (g.rz - c.rz) * f;
-      c.s += (g.s - c.s) * f; c.o += (g.o - c.o) * f; c.glow += (g.glow - c.glow) * f;
+      c.s += (g.s - c.s) * f; c.o += (g.o - c.o) * f;
       a.hover += (a.hoverTgt - a.hover) * (1 - Math.exp(-dt * 10));
       const visible = c.o > 0.01;
       a.group.visible = visible;
       if (!visible) continue;
-      a.group.position.set(c.x, c.y + Math.sin(this.time * 0.6 + a.product.index * 1.9) * 0.014, c.z);
-      a.group.rotation.set(c.rx, c.ry, c.rz);
-      a.group.scale.setScalar(c.s * (1 + a.hover * 0.035));
-      a.material.uniforms.uOpacity.value = c.o;
-      a.material.uniforms.uHover.value = a.hover;
-      a.glowMat.opacity = c.o * 0.2 * c.glow;
-      a.wireMat.opacity = c.o * 0.55;
+      // Hanging pieces sway very slightly; pieces on plinths stay still.
+      const sway = a.accessory ? 0 : Math.sin(this.time * 0.55 + a.product.index * 1.9) * 0.012;
+      a.group.position.set(c.x, c.y, c.z);
+      a.group.rotation.set(c.rx, c.ry + sway, c.rz);
+      a.group.scale.setScalar(c.s * (1 + a.hover * 0.025));
+      a.setOpacity(c.o);
+      a.setHover(a.hover);
+      a.floorShadow.position.y = (FLOOR_Y + 0.008 - a.group.position.y) / a.group.scale.y;
+      const sc = a.group.scale.y, gy = a.group.position.y;
+      if (a.stand) {
+        // Oak plinth from the piece's base down to the floor, 0.9 units wide in the room.
+        const top = a.bottom, bottom = (FLOOR_Y - gy) / sc;
+        a.stand.visible = !!g.stand && top - bottom > 0.05;
+        a.stand.scale.set(0.9 / sc, top - bottom, 0.9 / sc);
+        a.stand.position.set(a.centerX, (top + bottom) / 2, 0);
+      }
+      {
+        // Cable from the hanger hook (or the top of a cap/beanie) straight up to the
+        // ceiling, or to the Shop's ring rail when the view says so.
+        const to = g.cableTo ?? CEIL_Y;
+        const len = (to - (gy + a.cableFrom * sc)) / sc;
+        a.cable.visible = !!g.cable && len > 0.02 && Math.abs(c.rx) < 0.2;
+        a.cable.scale.y = Math.max(0.01, len);
+        a.cable.position.set(a.accessory ? a.centerX : 0, a.cableFrom + len / 2, 0);
+      }
+      a.floorMat.opacity = g.stand || Math.abs(c.rx) > 0.3 ? 0 : c.o * 0.28; // none on plinths or lying flat
+    }
+
+    // The hall spotlight follows piece 01 while it is the hero on Home.
+    const sr = this.showroom;
+    if (sr) {
+      const h = (this.feature || this.actors[0] || { group: { position: new THREE.Vector3() } }).group.position;
+      sr.heroSpot.target.position.set(h.x, h.y - 0.1, h.z);
+      sr.heroSpot.position.set(h.x * 0.6, sr.heroFixture.position.y, h.z + 2.6);
+      sr.heroSpot.intensity = this.quality.spotIntensity * 1.15 * this.heroLight;
+      // The banner lowers with the headline and lifts away as you walk in.
+      const drop = smooth(this.heroText);
+      sr.banner.position.y = lerp(9.3, 3.6, drop); // 9.3: fully retracted above the ceiling
+      sr.banner.visible = drop > 0.002;
     }
 
     const cam = this.cam;
     cam.pos.lerp(cam.tPos, f);
     cam.look.lerp(cam.tLook, f);
-    this.camera.position.set(cam.pos.x + this.pointer.sx * 0.16, cam.pos.y + this.pointer.sy * 0.09, cam.pos.z);
+    this.camera.position.set(cam.pos.x + this.pointer.sx * 0.14, cam.pos.y + this.pointer.sy * 0.07, cam.pos.z);
     this.camera.lookAt(cam.look);
 
     const fog = this.scene.fog;
     fog.near += (this.fogTarget[0] - fog.near) * 0.06;
     fog.far += (this.fogTarget[1] - fog.far) * 0.06;
-    this.shared.uFogNear.value = fog.near;
-    this.shared.uFogFar.value = fog.far;
 
-    this.fadeGroup("corridor", this.corridor);
-    this.fadeGroup("ring", this.ring);
-    const hm = this.headline.material;
-    hm.opacity += (this.heroText - hm.opacity) * 0.1;
-    this.headline.visible = hm.opacity > 0.01;
-    this.dust.rotation.y = Math.sin(this.time * 0.05) * 0.02;
+    const env = { corridor: this.envFade("corridor"), ring: this.envFade("ring") };
+    if (sr) sr.update(env);
 
     this.renderer.render(this.scene, this.camera);
   }
@@ -351,9 +331,11 @@ export function createNullStage(products) {
   const blank = () => ({ x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1, o: 0, glow: 1 });
   return {
     ok: false, portrait: window.innerWidth / window.innerHeight < 0.9, slotX: 1.45, ringR: 3.1,
-    actors: products.map((p) => ({ product: p, cur: blank(), tgt: blank(), setSpin: (a) => a, resetSpin() {} })),
+    actors: products.map((p) => ({ product: p, cur: blank(), tgt: blank(), setSpin: (a) => a, resetSpin() {}, accessory: p.kind === "cap" || p.kind === "beanie", bottom: -0.4 })),
     cam: { tPos: noop, tLook: noop }, pointer: { x: 0, y: 0, sx: 0, sy: 0 },
-    fogTarget: [5, 24], envTarget: {}, heroText: 0, time: 0,
+    fogTarget: [30, 90], envTarget: {}, heroText: 0, heroLight: 0, time: 0,
+    slot(i) { const side = i % 2 === 0 ? -1 : 1; return { side, x: side * 1.45, z: SLOT0_Z - i * GAP, ry: -side * 0.42 }; },
+    park() {},
     build: async (_, onProgress) => onProgress && onProgress(1),
     setView(v) { this.view = v; }, start() {}, pick: () => null, setHover() {},
     progress(el) { return el ? clamp01(window.scrollY / Math.max(1, el.offsetHeight - window.innerHeight)) : 0; }

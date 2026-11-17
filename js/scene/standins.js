@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHIEF — Stand-in garment art.
+   SLANG STUDIO — Stand-in garment art.
    Drawn SVG cut-outs (front + back) for every piece in the drop, used in the
    showroom until real photography exists. Everything is drawn in the same
    480x600 space as the Design Studio art, then scaled onto an 800x1000 card.
@@ -89,11 +89,11 @@ function noise(id, clip, c) {
 
 const ink = (c) => (isLight(c) ? "#141416" : "#f0ede7");
 const chestMark = () => `<rect x="284" y="192" width="34" height="34" rx="3" fill="${RED}"/><text x="301" y="219" font-family="${FONT}" font-size="26" fill="#fff" text-anchor="middle">M</text>`;
-const chestWord = (c) => `<text x="300" y="212" font-family="${FONT}" font-size="15" letter-spacing="3" fill="${ink(c)}" text-anchor="middle" opacity="0.9">MISCHIEF</text>`;
+const chestWord = (c) => `<text x="300" y="212" font-family="${FONT}" font-size="12" letter-spacing="2" fill="${ink(c)}" text-anchor="middle" opacity="0.9">SLANG STUDIO</text>`;
 const backWord = (word, c, y = 268, size = 58, fill) => `
   <text x="240" y="${y}" font-family="${FONT}" font-size="${size}" letter-spacing="2" fill="${fill || ink(c)}" text-anchor="middle">${word}</text>
   <rect x="150" y="${y + 18}" width="180" height="5" fill="${RED}"/>
-  <text x="240" y="${y + 48}" font-family="${FONT}" font-size="15" letter-spacing="6" fill="${ink(c)}" text-anchor="middle" opacity="0.8">DROP 01 — MISCHIEF</text>`;
+  <text x="240" y="${y + 48}" font-family="${FONT}" font-size="15" letter-spacing="6" fill="${ink(c)}" text-anchor="middle" opacity="0.8">DROP 01 — SLANG STUDIO</text>`;
 
 /* ---------- Pieces -------------------------------------------------------- */
 
@@ -152,7 +152,7 @@ function bomber(p, view) {
          ${seam("M176,372 L206,442", c, 0.8, 4)}${seam("M304,372 L274,442", c, 0.8, 4)}
          <rect x="410" y="286" width="26" height="34" rx="3" fill="${RED}" transform="rotate(7 423 303)"/>`
       : `${seam("M150,150 C200,176 280,176 330,150", c, 0.6, 3)}
-         <text x="240" y="300" font-family="${FONT}" font-size="46" letter-spacing="3" fill="none" stroke="${ink(c)}" stroke-width="1.6" text-anchor="middle" opacity="0.85">MISCHIEF</text>`}
+         <text x="240" y="300" font-family="${FONT}" font-size="46" letter-spacing="4" fill="none" stroke="${ink(c)}" stroke-width="1.6" text-anchor="middle" opacity="0.85">SLANG</text>`}
     <path d="M196,60 C222,46 258,46 284,60 L275,74 C258,84 222,84 205,74 Z" fill="${shade(c, 0.12)}" stroke="${shade(c, -0.45)}" stroke-width="2"/>
     ${ribBand(136, 528, 208, 32, c)}
     ${longCuffs(c)}
@@ -201,7 +201,7 @@ function cap(p, view) {
     <path d="M190,350 C190,286 290,286 290,350 Z" fill="#0a0a0c"/>
     <rect x="184" y="322" width="112" height="16" rx="3" fill="${shade(c, -0.18)}" stroke="${shade(c, -0.45)}" stroke-width="2"/>
     <rect x="230" y="318" width="20" height="24" rx="3" fill="#9a9aa2"/>
-    <text x="240" y="250" font-family="${FONT}" font-size="15" letter-spacing="4" fill="${ink(c)}" text-anchor="middle" opacity="0.85">MISCHIEF</text>
+    <text x="240" y="250" font-family="${FONT}" font-size="13" letter-spacing="3" fill="${ink(c)}" text-anchor="middle" opacity="0.85">SLANG STUDIO</text>
     ${gloss(CAP_BACK)}`;
 }
 

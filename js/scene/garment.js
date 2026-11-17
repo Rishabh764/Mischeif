@@ -1,152 +1,139 @@
 /* ==========================================================================
-   MISCHIEF — A hanging garment: a flat cut-out given depth.
-   The plane curves like a torso (always bulging toward the camera), sways as
-   if hanging, shows a different image on its back face, and casts a faint
-   mirror image on the showroom floor.
+   SLANG STUDIO — A garment in the showroom.
+   A real 3D model built from the piece's photos and depth maps (see
+   garment3d.js), lit by the room's lights like any other object. Clothes hang
+   on a dark metal hanger (a clip hanger for trousers); the cap and beanie have
+   none, because they sit on plinths.
+
+   Every garment is placed so its hanger hook sits at the same height (HOOK_Y),
+   which is where the room's rails are.
    ========================================================================== */
 
 import * as THREE from "../lib/three.module.min.js";
+import { buildGarmentGeometry, fabricTexture } from "./garment3d.js";
 import { pieceImage } from "./standins.js";
 
 export const PIECE_H = 1.6;
 export const PIECE_W = PIECE_H * 0.8;
-export const FLOOR_GAP = 0.34; // gap between the hem and the floor
+export const FLOOR_GAP = 1.75;          // hem to floor (about 0.9 m: garments hang at shop height)
+export const SHOULDER_Y = 0.55;          // where the hanger's shoulders sit, in the piece's own space
+export const HOOK_Y = 0.795;             // top of the hanger hook = rail height
+const ACCESSORY = new Set(["cap", "beanie"]);
 
-const VERT = /* glsl */ `
-  uniform float uTime, uPhase, uBulge, uSway;
-  varying vec2 vUv;
-  varying float vDepth, vCurve;
-  void main() {
-    vUv = uv;
-    vec3 p = position;
-    // +1 when the front face looks at the camera, -1 when the back does.
-    float facing = (modelViewMatrix * vec4(0.0, 0.0, 1.0, 0.0)).z >= 0.0 ? 1.0 : -1.0;
-    p.z += facing * uBulge * (cos((uv.x - 0.5) * 3.14159) - 0.35);
-    float hang = 1.0 - uv.y;
-    p.x += sin(uTime * 0.9 + uPhase + uv.y * 2.4) * uSway * hang;
-    p.z += cos(uTime * 0.7 + uPhase * 1.7 + uv.x * 3.0) * uSway * 1.6 * hang;
-    vec4 mv = modelViewMatrix * vec4(p, 1.0);
-    vDepth = -mv.z;
-    vCurve = (uv.x - 0.5) * facing;
-    gl_Position = projectionMatrix * mv;
-  }`;
+const load = (src) => new Promise((resolve) => {
+  const img = new Image();
+  img.decoding = "async";
+  img.onload = () => resolve(img);
+  img.onerror = () => resolve(null);
+  img.src = src;
+});
 
-const FRAG = /* glsl */ `
-  uniform sampler2D uFront, uBack;
-  uniform float uOpacity, uFogNear, uFogFar, uReflect, uFlipFace, uHover;
-  uniform vec3 uFogColor;
-  uniform vec2 uLight;
-  varying vec2 vUv;
-  varying float vDepth, vCurve;
-  void main() {
-    bool front = gl_FrontFacing;
-    if (uFlipFace > 0.5) front = !front;
-    vec4 c = front ? texture2D(uFront, vUv) : texture2D(uBack, vec2(1.0 - vUv.x, vUv.y));
-    if (c.a < 0.02) discard;
-    float n = sin(vCurve * 3.14159);
-    float lit = 0.86 + 0.24 * n * uLight.x + 0.10 * uLight.y * (vUv.y - 0.5);
-    float rim = smoothstep(0.30, 0.5, abs(vUv.x - 0.5)) * 0.07;
-    vec3 col = c.rgb * lit + rim + uHover * 0.05;
-    col = mix(col, uFogColor, smoothstep(uFogNear, uFogFar, vDepth));
-    float a = c.a * uOpacity;
-    if (uReflect > 0.5) { a *= 0.22 * pow(1.0 - vUv.y, 1.5); col *= 0.75; }
-    gl_FragColor = vec4(col, a);
-    #include <colorspace_fragment>
-  }`;
+/* ---------- Hangers (shared geometry) ------------------------------------- */
 
-const geometry = new THREE.PlaneGeometry(PIECE_W, PIECE_H, 28, 36);
-const glowGeometry = new THREE.PlaneGeometry(1, 1);
-
-function loadTexture(url, renderer) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.decoding = "async";
-    img.onload = () => {
-      // Rasterise onto a fixed canvas so SVG stand-ins and photos behave the same.
-      const cv = document.createElement("canvas");
-      cv.width = 800; cv.height = 1000;
-      const ctx = cv.getContext("2d");
-      const s = Math.min(cv.width / img.width, cv.height / img.height);
-      const w = img.width * s, h = img.height * s;
-      ctx.drawImage(img, (cv.width - w) / 2, (cv.height - h) / 2, w, h);
-      const tex = new THREE.CanvasTexture(cv);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-      resolve(tex);
-    };
-    img.onerror = () => resolve(null);
-    img.src = url;
-  });
+let HANGERS = null;
+function hangers() {
+  if (HANGERS) return HANGERS;
+  const metal = new THREE.MeshStandardMaterial({ color: 0x24221f, roughness: 0.32, metalness: 0.85, transparent: true });
+  const arc = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.4, -0.12, 0), new THREE.Vector3(-0.2, -0.02, 0), new THREE.Vector3(0, 0.04, 0),
+    new THREE.Vector3(0.2, -0.02, 0), new THREE.Vector3(0.4, -0.12, 0)
+  ]), 40, 0.011, 8);
+  const neck = new THREE.CylinderGeometry(0.0065, 0.0065, 0.17, 8);
+  const hook = new THREE.TorusGeometry(0.035, 0.0065, 8, 24, Math.PI * 1.3);
+  const bar = new THREE.CylinderGeometry(0.009, 0.009, 0.62, 10);
+  const clip = new THREE.BoxGeometry(0.035, 0.07, 0.03);
+  const make = (type) => {
+    const g = new THREE.Group();
+    const mat = metal.clone(); // each hanger fades with its own garment
+    const add = (geo, x, y, rx = 0, rz = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, 0); m.rotation.set(rx, 0, rz); m.castShadow = true; g.add(m); return m; };
+    if (type === "shoulder") add(arc, 0, SHOULDER_Y);
+    else { add(bar, 0, SHOULDER_Y + 0.02, 0, Math.PI / 2); add(clip, -0.26, SHOULDER_Y - 0.02); add(clip, 0.26, SHOULDER_Y - 0.02); }
+    add(neck, 0, SHOULDER_Y + 0.04 + 0.085);
+    add(hook, 0, HOOK_Y - 0.035, 0, -0.35);
+    return g;
+  };
+  HANGERS = { metal, make };
+  return HANGERS;
 }
 
-export async function createActor(product, renderer, shared) {
-  const [front, back] = await Promise.all([
-    loadTexture(pieceImage(product, "front"), renderer),
-    loadTexture(pieceImage(product, "back"), renderer)
-  ]);
-  let frames = null;
-  if (product.turntable && product.turntable.length) {
-    frames = (await Promise.all(product.turntable.map((u) => loadTexture(u, renderer)))).filter(Boolean);
-    if (!frames.length) frames = null;
-  }
+/* ---------- Actor ----------------------------------------------------------- */
 
-  const uniforms = {
-    uFront: { value: front }, uBack: { value: back || front },
-    uTime: shared.uTime, uLight: shared.uLight,
-    uFogColor: shared.uFogColor, uFogNear: shared.uFogNear, uFogFar: shared.uFogFar,
-    uPhase: { value: product.index * 1.37 }, uBulge: { value: 0.085 }, uSway: { value: 0.012 },
-    uOpacity: { value: 0 }, uReflect: { value: 0 }, uFlipFace: { value: 0 }, uHover: { value: 0 }
-  };
-  const material = new THREE.ShaderMaterial({
-    uniforms, vertexShader: VERT, fragmentShader: FRAG,
-    transparent: true, depthWrite: false, side: THREE.DoubleSide
+export async function createActor(product, renderer, shared) {
+  const [front, back, frontDepth, backDepth] = await Promise.all([
+    load(pieceImage(product, "front")), load(pieceImage(product, "back")),
+    load(`assets/depth/${product.id}-front.png`), load(`assets/depth/${product.id}-back.png`)
+  ]);
+
+  const q = shared.quality;
+  const geometry = frontDepth && backDepth
+    ? buildGarmentGeometry(frontDepth, backDepth, { GX: q.gridX, GY: Math.round(q.gridX * 1.25), width: PIECE_W, height: PIECE_H })
+    : new THREE.BoxGeometry(PIECE_W * 0.8, PIECE_H * 0.8, 0.2); // only if the depth maps are missing
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox;
+
+  const material = (img) => new THREE.MeshStandardMaterial({
+    map: img ? fabricTexture(img, renderer) : null, color: img ? 0xffffff : product.color.hex,
+    roughness: 0.88, metalness: 0, envMapIntensity: 0.55, transparent: true
   });
-  const mesh = new THREE.Mesh(geometry, material);
+  const frontMat = material(front), backMat = material(back || front);
+  const mesh = new THREE.Mesh(geometry, [frontMat, backMat]);
+  mesh.castShadow = true; mesh.receiveShadow = true;
   mesh.userData.product = product;
 
-  // Mirror image on the floor.
-  const reflMat = material.clone();
-  Object.assign(reflMat.uniforms, {
-    uFront: uniforms.uFront, uBack: uniforms.uBack, uTime: shared.uTime, uLight: shared.uLight,
-    uFogColor: shared.uFogColor, uFogNear: shared.uFogNear, uFogFar: shared.uFogFar,
-    uOpacity: uniforms.uOpacity, uPhase: uniforms.uPhase
-  });
-  reflMat.uniforms.uReflect.value = 1;
-  reflMat.uniforms.uFlipFace.value = 1;
-  const refl = new THREE.Mesh(geometry, reflMat);
-  refl.scale.y = -1;
-  refl.position.y = -(PIECE_H + FLOOR_GAP * 2);
-
-  // Soft light behind the piece, so dark garments read against a dark room.
-  const glowMat = new THREE.MeshBasicMaterial({
-    map: shared.glowTexture, transparent: true, depthWrite: false, opacity: 0,
-    blending: THREE.AdditiveBlending, fog: true, side: THREE.DoubleSide
-  });
-  const glow = new THREE.Mesh(glowGeometry, glowMat);
-  glow.scale.set(3.0, 3.4, 1);
-  glow.position.z = -0.4;
-  glow.renderOrder = -1;
-
-  // Hanging wire.
-  const wireMat = new THREE.MeshBasicMaterial({ color: 0x55555c, transparent: true, opacity: 0, fog: true });
-  const wire = new THREE.Mesh(new THREE.PlaneGeometry(0.006, 7), wireMat);
-  wire.position.y = PIECE_H / 2 + 3.42;
-
+  // Hang it: shoulders (or waistband) on the hanger; accessories centred on their own base.
+  const accessory = ACCESSORY.has(product.kind);
+  const hangerType = accessory ? null : product.kind === "cargo" ? "clip" : "shoulder";
+  if (hangerType === "shoulder") {
+    const shoulderTop = product.kind === "hoodie" ? box.max.y - 0.3 : box.max.y - 0.05;
+    mesh.position.y = SHOULDER_Y - shoulderTop;
+  } else if (hangerType === "clip") {
+    mesh.position.y = SHOULDER_Y - 0.03 - box.max.y;
+  }
   const group = new THREE.Group();
-  group.add(glow, refl, wire, mesh);
+  group.add(mesh);
+  let hanger = null;
+  if (hangerType) { hanger = hangers().make(hangerType); group.add(hanger); }
 
-  const zero = () => ({ x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1, o: 0, glow: 1 });
+  // Accessories carry their own oak plinth; clothes their own ceiling cable for
+  // when they hang on their own (hero, product page). The stage sizes both every
+  // frame so they always reach the floor / the ceiling.
+  let stand = null;
+  if (accessory) {
+    stand = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), shared.oakMaterial);
+    stand.castShadow = stand.receiveShadow = true; stand.visible = false;
+    group.add(stand);
+  }
+  const cableMat = hanger ? hanger.children[0].material : new THREE.MeshStandardMaterial({ color: 0x24221f, roughness: 0.4, metalness: 0.8, transparent: true });
+  const cable = new THREE.Mesh(new THREE.CylinderGeometry(accessory ? 0.008 : 0.005, accessory ? 0.008 : 0.005, 1, 6), cableMat);
+  cable.visible = false;
+  group.add(cable);
+
+  // Soft contact shadow on the floor under the piece (the stage keeps it on the floor).
+  const floorMat = new THREE.MeshBasicMaterial({ map: shared.shadowTexture, transparent: true, depthWrite: false, opacity: 0 });
+  const floorShadow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), floorMat);
+  floorShadow.rotation.x = -Math.PI / 2;
+  floorShadow.scale.set(1.5, 0.75, 1);
+  group.add(floorShadow);
+
+  const materials = [frontMat, backMat];
+  // stand / cable: whether the plinth or ceiling cable shows (set by the views, not smoothed).
+  // cableTo: world height the cable runs up to (the ceiling, or the Shop's ring rail).
+  const zero = () => ({ x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1, o: 0, glow: 1, stand: 0, cable: 0, cableTo: null });
   return {
-    product, group, mesh, material, glowMat, wireMat, frames, front,
+    product, group, mesh, materials, hanger, floorShadow, floorMat, accessory, stand, cable,
+    /** Lowest point / middle of the piece in its own space (for plinths). */
+    bottom: box.min.y + mesh.position.y,
+    centerX: (box.min.x + box.max.x) / 2,
+    /** Where a ceiling cable starts: the hanger hook, or the top of a cap or beanie. */
+    cableFrom: hanger ? HOOK_Y : box.max.y + mesh.position.y,
     cur: zero(), tgt: zero(), hover: 0, hoverTgt: 0,
-    /** Hero spin: real turntable frames when they exist, otherwise the cut-out turns. */
-    setSpin(angle) {
-      if (!frames) return angle;
-      const n = frames.length;
-      const k = ((Math.round((angle / (Math.PI * 2)) * n) % n) + n) % n;
-      uniforms.uFront.value = frames[k];
-      return 0;
+    /** The model is real 3D, so a spin is simply a rotation. */
+    setSpin(angle) { return angle; },
+    resetSpin() {},
+    setOpacity(o) {
+      for (const m of materials) { m.opacity = o; m.depthWrite = o > 0.98; }
+      cableMat.opacity = o;
     },
-    resetSpin() { if (frames) uniforms.uFront.value = front; }
+    setHover(h) { for (const m of materials) m.emissive.setScalar(h * 0.06); }
   };
 }

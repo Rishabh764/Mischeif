@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHIEF — Product: one piece, up close.
+   SLANG STUDIO — Product: one piece, up close.
    The camera flies to the chosen piece; the rest of the drop hangs dimly in
    the dark behind it. Drag (or use Flip) to turn the piece around.
    ========================================================================== */
@@ -17,7 +17,7 @@ export default function product({ stage, root, products, go, ui }) {
 
   /* ---------- Fill the panel -------------------------------------------- */
 
-  document.title = `${p.name} — MISCHIEF`;
+  document.title = `${p.name} — SLANG STUDIO`;
   $("[data-no]").textContent = `${p.no} / ${String(n).padStart(2, "0")}`;
   $("[data-category]").textContent = p.category;
   $("[data-name]").textContent = p.name;
@@ -91,38 +91,32 @@ export default function product({ stage, root, products, go, ui }) {
     const portrait = stage.portrait;
     spin += (spinTarget - spin) * (1 - Math.exp(-dt * 9));
 
-    stage.envTarget.corridor = 0;
+    stage.envTarget.corridor = 0.4;
     stage.envTarget.ring = 0;
-    stage.fogTarget = [5.2, 13];
+    stage.fogTarget = [30, 95];
     stage.heroText = 0;
+    stage.heroLight = 1;
 
     const camZ = portrait ? 5.6 : 4.7;
     const aspect = stage.camera ? stage.camera.aspect : 1.6;
     // Centre of the left part of the screen, at the piece's depth.
-    const halfW = Math.tan(((portrait ? 58 : 42) * Math.PI) / 360) * camZ * aspect;
+    const halfW = Math.tan(((portrait ? 60 : 44) * Math.PI) / 360) * camZ * aspect;
 
-    let k = 0;
-    const others = n - 1;
-    stage.actors.forEach((a) => {
+    stage.actors.forEach((a, i) => {
       const t = a.tgt;
-      t.rz = 0;
-      if (a.product === p) {
-        t.x = portrait ? 0 : -halfW * 0.44;
-        t.y = portrait ? 0.78 : 0.02;
-        t.z = 0;
-        t.ry = spin + stage.pointer.sx * 0.3;
-        t.rx = -stage.pointer.sy * 0.06;
-        t.s = portrait ? 1.02 : 1.42;
-        t.o = 1; t.glow = 1.5;
-        return;
-      }
-      // The rest of the drop: a dim rack far behind.
-      const u = k++ - (others - 1) / 2;
-      t.x = u * (portrait ? 1.25 : 1.75);
-      t.y = portrait ? 0.78 : 0.1;
-      t.z = -7.2 - Math.abs(u) * 0.35;
-      t.ry = -u * 0.07; t.rx = 0;
-      t.s = 0.92; t.o = 0.85; t.glow = 0.5;
+      if (a.product !== p) { stage.park(a, i); return; } // the rest of the drop stays on its rails
+      // This piece, up close in the hall under its own light, hanging from a
+      // ceiling cable (by its hanger, or by a cord for the cap and beanie).
+      stage.feature = a;
+      t.x = portrait ? 0 : -halfW * 0.44;
+      t.y = portrait ? 0.78 : 0.02;
+      t.z = 0; t.rz = 0;
+      t.ry = spin + stage.pointer.sx * 0.3;
+      t.rx = -stage.pointer.sy * 0.06;
+      t.s = portrait ? 1.02 : 1.42;
+      t.o = 1;
+      t.cable = 1;
+      t.stand = 0;
     });
 
     stage.cam.tPos.set(0, portrait ? 0.3 : 0.05, camZ);

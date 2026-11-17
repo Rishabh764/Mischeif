@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHIEF — Shared interface: frame (logo / bag / menu), full-screen menu,
+   SLANG STUDIO — Shared interface: frame (logo / bag / menu), full-screen menu,
    bag panel, toasts, custom cursor, loading intro, footer.
    ========================================================================== */
 
@@ -18,7 +18,7 @@ export function mount() {
   host.id = "chrome";
   host.innerHTML = `
     <header class="hud" data-ui>
-      <a class="hud__logo" href="index.html" aria-label="Mischief — showroom">MISCH<span>IEF</span></a>
+      <a class="hud__logo" href="index.html" aria-label="Slang Studio — showroom">SLANG <span>STUDIO</span></a>
       <div class="hud__right">
         <button class="hud__btn" type="button" data-bag-open>Bag <span class="hud__count" data-bag-count>0</span></button>
         <button class="hud__btn hud__btn--menu" type="button" data-menu-toggle aria-expanded="false" aria-controls="menu">
@@ -247,7 +247,7 @@ export const loader = {
 export function footerHTML() {
   return `
     <div class="footer__top">
-      <a class="footer__logo" href="index.html">MISCH<span>IEF</span></a>
+      <a class="footer__logo" href="index.html">SLANG <span>STUDIO</span></a>
       <form class="notify" data-notify novalidate>
         <label for="notify-email">Get told about the next drop</label>
         <div class="notify__row">
@@ -262,7 +262,7 @@ export function footerHTML() {
         <li><a href="customize.html">Studio</a></li>
         <li><a href="about.html">About</a></li>
       </ul>
-      <p>© ${new Date().getFullYear()} Mischief. Demo store — not a real checkout.</p>
+      <p>© ${new Date().getFullYear()} Slang Studio. Demo store — not a real checkout.</p>
     </div>`;
 }
 

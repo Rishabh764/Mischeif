@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHIEF — Local preview server (no dependencies).
+   SLANG STUDIO — Local preview server (no dependencies).
    The showroom is a 3D scene, and browsers refuse to load images into 3D from
    a file opened by double-click, so it has to be served over http.
 
@@ -39,5 +39,5 @@ http.createServer((req, res) => {
     else send(res, 404, path.join(ROOT, "404.html"));
   });
 }).listen(PORT, () => {
-  console.log(`Mischief showroom running at http://localhost:${PORT}  (Ctrl+C to stop)`);
+  console.log(`Slang Studio showroom running at http://localhost:${PORT}  (Ctrl+C to stop)`);
 });

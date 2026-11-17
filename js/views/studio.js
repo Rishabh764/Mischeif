@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHIEF — Design Studio (tee & hoodie customizer).
+   SLANG STUDIO — Design Studio (tee & hoodie customizer).
    Same features as before: garment, colours, six print zones, photo upload or
    preset graphics, drag / size / rotate, live price, add to bag.
    The showroom dims behind it; the garment hangs in the light.
@@ -313,20 +313,15 @@ export default function studio({ stage, root, ui }) {
   /* ---------- The room behind --------------------------------------------- */
 
   function update() {
-    stage.envTarget.corridor = 0;
+    stage.envTarget.corridor = 0.6;
     stage.envTarget.ring = 0;
-    stage.fogTarget = [4, 12];
+    stage.fogTarget = [30, 95];
     stage.heroText = 0;
-    const n = stage.actors.length;
-    stage.actors.forEach((a, i) => {
-      // The drop drifts in a slow, dim circle far behind the work table.
-      const theta = (i / n) * Math.PI * 2 + stage.time * 0.03;
-      const t = a.tgt;
-      t.x = Math.sin(theta) * 7; t.y = 0.2; t.z = -9 + Math.cos(theta) * 3.5;
-      t.ry = theta; t.rx = 0; t.rz = 0; t.s = 0.9; t.o = 0.55; t.glow = 0.4;
-    });
-    stage.cam.tPos.set(0, 0.2, 5.5);
-    stage.cam.tLook.set(0, 0, -6);
+    stage.heroLight = 0;
+    // The work table stands in the hall; the stocked aisle stretches out behind it.
+    stage.actors.forEach((a, i) => stage.park(a, i));
+    stage.cam.tPos.set(0, 0.55, 6.5);
+    stage.cam.tLook.set(0, 0, -10);
   }
 
   return {

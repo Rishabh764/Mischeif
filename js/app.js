@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHIEF — App entry.
+   SLANG STUDIO — App entry.
    Boots the showroom, then swaps page content in place (so the 3D scene never
    reloads) while keeping every page a real, shareable address.
    ========================================================================== */

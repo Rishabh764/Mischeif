@@ -1,11 +1,11 @@
 /* ==========================================================================
-   MISCHIEF — Shop: the ring.
+   SLANG STUDIO — Shop: the ring.
    The drop hangs on a carousel that turns forever in either direction.
    Scroll, drag, use the arrows or the keyboard to spin it; the piece at the
    front is the one you can open.
    ========================================================================== */
 
-import { smooth, lerp } from "../scene/stage.js";
+import { RING_Z, HOOK_Y } from "../scene/stage.js";
 import { CATEGORIES, formatPrice } from "../data/products.js";
 
 const STEP_VH = 55;  // scroll distance between neighbours
@@ -90,35 +90,37 @@ export default function shop({ stage, root, products, go, ui }) {
     const pos = position();
     const portrait = stage.portrait;
 
-    stage.envTarget.corridor = 0;
+    stage.envTarget.corridor = 0.4;
     stage.envTarget.ring = 1;
-    stage.fogTarget = [3.6, 11.5];
+    stage.fogTarget = [30, 95];
     stage.heroText = 0;
+    stage.heroLight = 0;
 
     stage.actors.forEach((a, i) => {
       const t = a.tgt;
       const j = visible.indexOf(i);
-      t.rx = 0; t.rz = 0; t.glow = 1;
-      if (j < 0) { // filtered out: sink away behind the ring
-        t.x = 0; t.y = -1.4; t.z = -R * 2; t.ry = 0; t.s = 0.8; t.o = 0;
-        return;
-      }
+      if (j < 0) { stage.park(a, i); return; } // filtered out: back on its rail in the aisle
       let d = j - pos;                       // steps away from the front
       if (loop) d -= n * Math.round(d / n);  // the short way round the circle
       const theta = d * angle;
-      const front = smooth(1 - Math.abs(d));
       t.x = Math.sin(theta) * R;
-      t.z = Math.cos(theta) * R - R;
-      t.y = lerp(0, 0.03, front);
+      t.z = RING_Z + Math.cos(theta) * R;
       t.ry = theta; // pieces face outwards, so the far side of the ring shows their backs
-      t.s = lerp(0.9, portrait ? 1.08 : 1.2, front);
-      t.o = 1;
+      t.rx = 0; t.rz = 0; t.o = 1; t.cable = 0; t.cableTo = null;
+      if (a.accessory) {
+        // Hung from the ring rail on a short cord, like caps on a shop hook.
+        t.s = 0.62; t.y = HOOK_Y - 0.5 - a.cableFrom * 0.62;
+        t.stand = 0; t.cable = 1; t.cableTo = HOOK_Y;
+      } else {
+        // Hung by its hook from the circular ceiling rail.
+        t.s = 1; t.y = 0; t.stand = 0;
+      }
     });
 
-    // Look slightly below the pieces so they sit in the upper part of the screen,
-    // clear of the caption at the bottom.
-    stage.cam.tPos.set(0, 0.1, portrait ? 4.7 : 4.6);
-    stage.cam.tLook.set(0, portrait ? -0.5 : -0.62, -0.8);
+    // Standing at eye height in front of the carousel, looking at the front piece.
+    const front = RING_Z + R;
+    stage.cam.tPos.set(0, 0.55, front + (portrait ? 4.4 : 4.0));
+    stage.cam.tLook.set(0, portrait ? -0.45 : -0.3, front - 1.2);
     if (n) show(pieceAt(Math.round(pos)));
   }
 

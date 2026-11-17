@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHIEF — Preset design library for the Studio.
+   SLANG STUDIO — Preset design library for the Studio.
    Transparent-background SVG graphics/text, ready to drop onto a print zone.
    ========================================================================== */
 
@@ -88,10 +88,10 @@ export const DESIGN_PRESETS = [
     </svg>`
   },
   {
-    id: "text-mischief", name: "MISCHIEF Badge", category: "Lettering",
+    id: "text-slang", name: "Slang Studio Badge", category: "Lettering",
     svg: `<svg viewBox="0 0 260 100" xmlns="http://www.w3.org/2000/svg">
       <rect x="4" y="4" width="252" height="92" rx="46" fill="#ff3b30"/>
-      <text x="130" y="62" font-family="Arial Black, Arial, sans-serif" font-size="30" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">MISCHIEF</text>
+      <text x="130" y="62" font-family="Arial Black, Arial, sans-serif" font-size="23" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">SLANG STUDIO</text>
     </svg>`
   },
   {
@@ -113,7 +113,7 @@ export const DESIGN_PRESETS = [
     svg: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
       <circle cx="100" cy="100" r="90" fill="none" stroke="#f3f2ee" stroke-width="4"/>
       <circle cx="100" cy="100" r="78" fill="none" stroke="#f3f2ee" stroke-width="2"/>
-      <text x="100" y="70" font-family="Arial Black, Arial, sans-serif" font-size="18" fill="#f3f2ee" text-anchor="middle" letter-spacing="3">MISCHIEF</text>
+      <text x="100" y="70" font-family="Arial Black, Arial, sans-serif" font-size="13" fill="#f3f2ee" text-anchor="middle" letter-spacing="1.5">SLANG STUDIO</text>
       <text x="100" y="115" font-family="Arial Black, Arial, sans-serif" font-size="30" font-weight="900" fill="#f3f2ee" text-anchor="middle">DROP 01</text>
       <text x="100" y="145" font-family="Arial Black, Arial, sans-serif" font-size="14" fill="#f3f2ee" text-anchor="middle" letter-spacing="3">NO RULES</text>
     </svg>`

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHIEF — Design Studio garments (Tee / Hoodie, Front / Back).
+   SLANG STUDIO — Design Studio garments (Tee / Hoodie, Front / Back).
    Each garment is a photo turned into a greyscale "shading map"
    (assets/studio/<type>-<view>.webp). The browser tints that map with the
    chosen colour, so the folds and fabric stay real while the colour changes

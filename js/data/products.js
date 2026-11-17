@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MISCHIEF — Drop 01 catalogue (placeholder content for the demo store).
+   SLANG STUDIO — Drop 01 catalogue (placeholder content for the demo store).
    Order here is the order pieces hang in the showroom corridor.
 
    Photos: `images: { front, back }` are transparent cut-outs (WebP or PNG).
@@ -54,7 +54,7 @@ export const PRODUCTS = [
     color: { name: "Blackout", hex: "#131316" },
     sizes: ["S", "M", "L", "XL", "XXL"],
     description: "Matte black bomber with a silver zip and a red badge on the sleeve.",
-    details: ["Matte cotton-blend shell", "Silver front zip", "Ribbed collar, cuffs and hem", "Two slanted front pockets", "Red woven badge on the left sleeve", "Tonal lettering on the back"]
+    details: ["Matte cotton-blend shell", "Silver front zip", "Ribbed collar, cuffs and hem", "Two slanted front pockets", "Red woven badge on the left sleeve", "Tonal SLANG lettering on the back"]
   },
   {
     id: "static-hoodie",
@@ -92,8 +92,8 @@ export const PRODUCTS = [
     price: 39,
     color: { name: "Bone", hex: "#e4dfd5" },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-    description: "Bone tee covered in a static print, front and back. Small MISCHIEF wordmark on the chest, STATIC across the shoulders.",
-    details: ["Heavyweight cotton jersey", "Boxy fit", "All-over static print", "MISCHIEF wordmark on the chest", "STATIC print on the back", "Ribbed crew neck"]
+    description: "Bone tee covered in a static print, front and back. Small SLANG STUDIO wordmark on the chest, STATIC across the shoulders.",
+    details: ["Heavyweight cotton jersey", "Boxy fit", "All-over static print", "SLANG STUDIO wordmark on the chest", "STATIC print on the back", "Ribbed crew neck"]
   },
   {
     id: "curfew-hoodie",
@@ -118,8 +118,8 @@ export const PRODUCTS = [
     price: 35,
     color: { name: "Bone", hex: "#e4dfd5" },
     sizes: ["One Size"],
-    description: "Six-panel cap in bone twill with a red M patch on the front and a strap-back.",
-    details: ["Cotton twill", "Six-panel, curved brim", "Red M patch on the front", "Adjustable strap with a metal buckle"]
+    description: "Six-panel cap in bone twill with a red S patch on the front and a strap-back.",
+    details: ["Cotton twill", "Six-panel, curved brim", "Red S patch on the front", "Adjustable strap with a metal buckle"]
   },
   {
     id: "nightcrawler-tee",

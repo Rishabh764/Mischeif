@@ -1,10 +1,10 @@
 /* ==========================================================================
-   MISCHIEF — Bag storage (browser-only; this is a demo store).
+   SLANG STUDIO — Bag storage (browser-only; this is a demo store).
    ========================================================================== */
 
 import { getProduct } from "../data/products.js";
 
-const KEY = "mischief_cart_v1";
+const KEY = "slangstudio_cart_v1";
 const listeners = new Set();
 
 function read() {

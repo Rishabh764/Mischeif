@@ -1,7 +1,7 @@
 {
-  "name": "mischief-showroom",
+  "name": "slang-studio-showroom",
   "private": true,
-  "description": "Mischief demo store: a 3D showroom in plain HTML, CSS and JS. No build step, no dependencies.",
+  "description": "Slang Studio demo store: a 3D showroom in plain HTML, CSS and JS. No build step, no dependencies.",
   "scripts": {
     "dev": "node serve.js"
   }

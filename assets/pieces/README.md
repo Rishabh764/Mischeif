@@ -36,16 +36,16 @@ For every **back** view, give the generator the matching front image as a refere
 | `riot-hoodie-back` | Heavyweight oversized black hoodie, hood resting on the upper back, bold white "RIOT" print across the upper back with a thin red line under it |
 | `troublemaker-tee-back` | Boxy deep blood-red tee, large off-white puff-print "TROUBLE" across the upper back |
 | `blackout-bomber-front` | Matte black technical bomber, closed silver zip, ribbed collar, cuffs and hem, slanted pockets, small red badge on the left sleeve |
-| `blackout-bomber-back` | Same bomber from behind, tonal outlined "MISCHIEF" lettering across the back |
+| `blackout-bomber-back` | Same bomber from behind, tonal outlined collegiate "SLANG" lettering across the back (edited in Canva from the original) |
 | `static-hoodie-back` | Cropped boxy bone off-white hoodie, hood on the upper back, tonal grey TV-static print all over, a few tiny red glitch marks |
 | `sneak-cargo-front` | Tapered storm-grey ripstop cargo pants, elastic waist with drawcord, flap cargo pockets on both thighs, ankle zips |
 | `sneak-cargo-back` | Same cargo pants from behind, two back pockets, small red label on the waistband |
-| `staticnoise-tee-front` | Generated from the back as reference: the same bone tee and static print seen from the front, small dark grey "MISCHIEF" wordmark on the left chest |
+| `staticnoise-tee-front` | Generated from the back as reference: the same bone tee and static print seen from the front, small dark grey "SLANG STUDIO" wordmark on the left chest |
 | `staticnoise-tee-back` | Same tee from behind, plain, with "STATIC" in dark grey across the upper back |
-| `curfew-hoodie-front` | Clean midweight storm-grey hoodie, small tonal embroidered "MISCHIEF" on the left chest |
+| `curfew-hoodie-front` | Clean midweight storm-grey hoodie, small tonal embroidered "SLANG STUDIO" on the left chest |
 | `curfew-hoodie-back` | Same hoodie from behind, "CURFEW" in off-white across the upper back |
-| `riot-cap-front` | Structured six-panel bone off-white cap, three-quarter front view, red square patch with a white "M" on the front |
-| `riot-cap-back` | Same cap from behind, adjustable strap with metal buckle, small "MISCHIEF" above the opening |
+| `riot-cap-front` | Structured six-panel bone off-white cap, front view, red square patch with a white "S" on the front (edited in Canva from the original) |
+| `riot-cap-back` | Same cap from behind, adjustable strap with metal buckle, small "SLANG STUDIO" above the opening |
 | `nightcrawler-tee-front` | Heavyweight black long-sleeve tee, ribbed cuffs, small red square patch on the left chest, three short red stripes on the left forearm |
 | `nightcrawler-tee-back` | Same long-sleeve tee from behind, "NIGHT" in off-white across the upper back |
 | `static-beanie-front` | Deep blood-red ribbed beanie with a wide folded cuff, small off-white woven label on the cuff, upright as if worn |
